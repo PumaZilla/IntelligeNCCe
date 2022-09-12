@@ -1,0 +1,11 @@
+---
+version: "3.8"
+services:
+  cache:
+    image: redis:alpine
+    container_name: cache
+    ports: [ 6379:6379 ]
+    restart: unless-stopped
+    volumes: [ storage_cache:/data:rw ]
+volumes:
+  storage_cache: {}

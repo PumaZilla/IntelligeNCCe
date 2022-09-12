@@ -1,0 +1,28 @@
+---
+id: pastebin.pl
+watch:
+  every: 1h
+  steps:
+  - name: Get recent pastes
+    action: fetch
+    options:
+      url: https://pastebin.pl/lists
+  - name: Extract pasted IDs
+    action: extract
+    options:
+      query: "/view/([a-f0-9]+)"
+      group: 1
+  - name: Craft the raw URLs
+    action: template
+    options:
+      template: https://pastebin.pl/view/raw/{data}
+  - name: Fetch the raw pastes
+    action: fetch
+  - name: Debug the result
+    action: debug
+    options:
+      message: "-- Raw paste from {source}:\n{data}\n"
+  - name: Publish the data
+    action: publish
+    options:
+      type: source
