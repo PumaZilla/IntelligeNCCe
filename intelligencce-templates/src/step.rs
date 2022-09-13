@@ -1,8 +1,7 @@
 use super::action;
-use super::output;
-use crate::config;
+//use super::output;
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct Step {
     pub name: Option<String>,
@@ -20,6 +19,7 @@ impl std::fmt::Display for Step {
         )
     }
 }
+/*
 impl Step {
     pub async fn run(
         &self,
@@ -45,3 +45,4 @@ impl Step {
         Ok(res)
     }
 }
+*/

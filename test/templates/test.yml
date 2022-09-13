@@ -1,16 +1,5 @@
 ---
-id: pastebin.pl
+id: test
 watch:
-  every: 1h
-  steps:
-  - name: Get links
-    action: fetch
-    options:
-      url: https://kike.wtf
-  - name: Extract links
-    action: extract
-    options:
-      query: href="(http.+?)"
-      group: 1
-  - action: fetch
-  - action: publish
+  every: 2h
+  steps: []

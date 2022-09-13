@@ -1,0 +1,14 @@
+[package]
+name = "intelligencce"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "3.2.20", features = ["derive","env"] }
+dirs = { version = "4.0.0" }
+dotenv = { version = "0.15.0" }
+redis = { version = "0.21.6" }
+
+intelligencce-templates = { path = "../intelligencce-templates" }

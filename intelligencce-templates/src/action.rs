@@ -1,7 +1,6 @@
-use super::output;
-use crate::config;
+//use super::output;
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Clone, serde::Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Action {
     Fetch,
@@ -22,7 +21,7 @@ impl std::fmt::Display for Action {
         }
     }
 }
-
+/*
 impl Action {
     pub async fn execute(
         &self,
@@ -122,3 +121,4 @@ impl Action {
         })
     }
 }
+*/

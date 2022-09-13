@@ -1,3 +1,4 @@
+/*
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct Output {
     pub src: String,
@@ -22,3 +23,4 @@ impl Output {
         Ok(serde_json::from_str(&data)?)
     }
 }
+*/
