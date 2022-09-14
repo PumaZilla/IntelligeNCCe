@@ -7,22 +7,22 @@ fn start() -> Result<(), Box<dyn std::error::Error>> {
 
     // create the channel
     let (tx, rx) = std::sync::mpsc::channel();
-    let mtx = std::sync::Mutex::new(tx);
-    let atx = std::sync::Arc::new(mtx);
+    let atx = std::sync::Arc::new(std::sync::Mutex::new(tx));
 
-    for (id,template) in templates {
+    // iterate over all templates 
+    for (id,tmpl) in templates {
         let atx = std::sync::Arc::clone(&atx);
-        let tmpl = template.clone();
+        let wtmpl = tmpl.clone();
         // start the watcher in a thread and then print the template debug info
         std::thread::spawn(move || {
-            tmpl.watch(atx);
+            wtmpl.watch(atx);
         });
         println!("[*] Running: {}", id);
     }
 
     // start the listenner
     for msg in rx {
-        println!("{}", msg);
+        println!("Out Rx: {}", msg);
     }
 
     Ok(())

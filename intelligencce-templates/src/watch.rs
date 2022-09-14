@@ -1,20 +1,21 @@
 //use super::output;
-use super::{step,Tx};
+use super::{step, Tx};
 
 //const DEFAULT_STORE_KEY: &str = "default";
 
 #[derive(Debug, Clone, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct Watch {
-    pub every: String,
-    pub steps: Vec<step::Step>,
+    every: String,
+    #[serde(rename="steps")]
+    _steps: Vec<step::Step>,
 }
 impl Watch {
     /// Start watching for changes and send the results to the given channel
     pub fn start(&self, tx: Tx) {
         loop {
             let guard = tx.lock().unwrap();
-            let _ = guard.send(format!("sending time: {}", self.every)); // TODO: Handle error
+            let _ = (*guard).send(format!("sending time: {}", self.every)); // TODO: Handle error
             std::mem::drop(guard);
             std::thread::sleep(std::time::Duration::from_secs(2));
         }

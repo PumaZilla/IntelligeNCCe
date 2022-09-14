@@ -5,7 +5,7 @@ mod watch;
 
 use std::sync;
 
-pub type Tx = sync::Arc<sync::Mutex<sync::mpsc::Sender<String>>>;
+type Tx = sync::Arc<sync::Mutex<sync::mpsc::Sender<String>>>;
 
 /// Walks the given path and returns a list of all YML files
 fn find(path: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
@@ -68,9 +68,9 @@ pub fn update(_repository: &str) -> Result<(), Box<dyn std::error::Error>> {
 /// Template represents a bunch of steps to be executed in order to obtain information
 pub struct Template {
     /// Unique identifier for the template
-    pub id: String,
+    id: String,
     /// Watchers
-    pub watch: Option<watch::Watch>,
+    watch: Option<watch::Watch>,
 }
 impl Template {
     /// Creates a new template from the given path. The provided file must be a valid YAML file.

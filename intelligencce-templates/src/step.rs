@@ -4,11 +4,11 @@ use super::action;
 #[derive(Debug, Clone, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct Step {
-    pub name: Option<String>,
-    pub action: action::Action,
-    pub load: Option<String>,
-    pub save_as: Option<String>,
-    pub options: Option<std::collections::HashMap<String, String>>,
+    name: Option<String>,
+    action: action::Action,
+    _load: Option<String>,
+    _save_as: Option<String>,
+    _options: Option<std::collections::HashMap<String, String>>,
 }
 impl std::fmt::Display for Step {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
