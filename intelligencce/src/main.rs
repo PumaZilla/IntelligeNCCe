@@ -22,7 +22,7 @@ fn start() -> Result<(), Box<dyn std::error::Error>> {
 
     // start the listenner
     for msg in rx {
-        println!("Out Rx: {}", msg);
+        println!("Out Rx: {:#?}", msg);
     }
 
     Ok(())

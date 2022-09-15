@@ -1,11 +1,11 @@
 mod action;
-mod output;
+mod data;
 mod step;
 mod watch;
 
 use std::sync;
 
-type Tx = sync::Arc<sync::Mutex<sync::mpsc::Sender<String>>>;
+pub type DataTx = sync::Arc<sync::Mutex<sync::mpsc::Sender<data::Data>>>;
 
 /// Walks the given path and returns a list of all YML files
 fn find(path: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
@@ -81,9 +81,11 @@ impl Template {
         Ok(template)
     }
     /// Executes the watcher and send the outputs to the given channel
-    pub fn watch(&self, tx: Tx) {
+    pub fn watch(&self, tx: DataTx) {
         if let Some(watch) = &self.watch {
-            watch.start(tx);
+            if let Err(err) = watch.start(&self.id, tx) {
+                println!("[!] Failed to start watcher: {}", err);
+            }
         }
     }
 }

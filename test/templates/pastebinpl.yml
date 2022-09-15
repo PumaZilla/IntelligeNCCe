@@ -12,5 +12,4 @@ watch:
     options:
       query: href="(http.+?)"
       group: 1
-  - action: fetch
   - action: publish

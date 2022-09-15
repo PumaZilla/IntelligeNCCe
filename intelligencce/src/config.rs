@@ -13,7 +13,7 @@ pub struct Config {
 
     #[clap(
         short,
-        long,
+        long = "templates",
         env = "INTELLIGENCCE_TEMPLATES",
         help = "Templates directory"
     )]

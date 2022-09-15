@@ -1,4 +1,4 @@
-//use super::output;
+use super::data;
 
 #[derive(Debug, Clone, serde::Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -21,40 +21,43 @@ impl std::fmt::Display for Action {
         }
     }
 }
-/*
+
 impl Action {
-    pub async fn execute(
+    pub fn execute(
         &self,
-        cfg: &config::Config,
-        arg: &output::Output,
+        ctx: &data::Data,
         options: &std::collections::HashMap<String, String>,
-    ) -> Result<Vec<output::Output>, Box<dyn std::error::Error>> {
+    ) -> Result<Vec<data::Data>, Box<dyn std::error::Error>> {
         Ok(match self {
             Self::Publish => {
-                cfg.storage
-                    .publish(options.get("type").unwrap_or(&"source".to_string()), arg)
-                    .await?; // FIXME: Create default type
-                vec![]
+                vec![data::Data::new(
+                    &ctx.template,
+                    options.get("type").unwrap_or(&"source".to_string()),
+                    &ctx.src,
+                    &ctx.content,
+                )]
             }
             Self::Debug => {
                 let message = options
                     .get("message")
-                    .unwrap_or(&"{data}".to_string())
-                    .replace("{data}", &arg.data)
-                    .replace("{source}", &arg.src);
+                    .unwrap_or(&"{content}".to_string())
+                    .replace("{content}", &ctx.content)
+                    .replace("{source}", &ctx.src);
                 println!("{}", message);
-                vec![arg.clone()]
+                vec![ctx.clone()]
             }
             Self::Template => {
                 let template = options
                     .get("template")
                     .ok_or("No template provided")?
-                    .replace("{source}", &arg.src)
-                    .replace("{data}", &arg.data);
-                vec![output::Output {
-                    src: arg.src.clone(),
-                    data: template,
-                }]
+                    .replace("{source}", &ctx.src)
+                    .replace("{data}", &ctx.content);
+                vec![data::Data::new(
+                    &ctx.template,
+                    &ctx.type_,
+                    &ctx.src,
+                    &template,
+                )]
             }
             Self::Extract => {
                 let default_type: &std::string::String = &"regex".to_string();
@@ -64,14 +67,13 @@ impl Action {
                         let re = regex::Regex::new(query)?;
                         let group: usize =
                             options.get("group").unwrap_or(&"0".to_string()).parse()?;
-                        let mut res: Vec<output::Output> = Vec::new();
-                        for cap in re.captures_iter(&arg.data) {
-                            res.push(output::Output::new(
-                                arg.src.clone(),
-                                cap.get(group)
-                                    .ok_or("Group not specified")?
-                                    .as_str()
-                                    .to_string(),
+                        let mut res: Vec<data::Data> = Vec::new();
+                        for cap in re.captures_iter(&ctx.content) {
+                            res.push(data::Data::new(
+                                &ctx.template,
+                                &ctx.type_,
+                                &ctx.src,
+                                cap.get(group).ok_or("Group not found")?.as_str(),
                             ));
                         }
                         res
@@ -85,7 +87,7 @@ impl Action {
                 // Check the values
                 let url: String = match options.get("url") {
                     Some(url) => url.to_string(),
-                    None => reqwest::Url::parse(&arg.data)?.as_str().to_string(),
+                    None => reqwest::Url::parse(&ctx.content)?.as_str().to_string(),
                 };
                 let method: reqwest::Method = reqwest::Method::from_bytes(
                     options
@@ -108,17 +110,14 @@ impl Action {
                     .map(|header| (header[0].to_string(), header[1].to_string()))
                     .collect();
                 // Create the request
-                let res = reqwest::Client::new()
+                let res = reqwest::blocking::Client::new()
                     .request(method, &url)
                     .headers((&headers).try_into()?)
-                    .send()
-                    .await?
-                    .text()
-                    .await?;
+                    .send()?
+                    .text()?;
                 // Send the request
-                vec![output::Output::new(url.clone(), res)]
+                vec![data::Data::new(&ctx.template,&ctx.type_,&url, &res)]
             }
         })
     }
 }
-*/

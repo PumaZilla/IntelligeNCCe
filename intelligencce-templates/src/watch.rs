@@ -1,50 +1,51 @@
-//use super::output;
-use super::{step, Tx};
+use super::{data, step, DataTx};
 
-//const DEFAULT_STORE_KEY: &str = "default";
+const DEFAULT_STORE_KEY: &str = ":: default";
 
 #[derive(Debug, Clone, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct Watch {
     every: String,
-    #[serde(rename="steps")]
-    _steps: Vec<step::Step>,
+    steps: Vec<step::Step>,
 }
 impl Watch {
     /// Start watching for changes and send the results to the given channel
-    pub fn start(&self, tx: Tx) {
+    pub fn start(&self, id: &str, tx: DataTx) -> Result<(), Box<dyn std::error::Error>> {
+        let sleep_time = duration_string::DurationString::from_string(self.every.clone())?.into();
         loop {
+            let results = self.run(id)?; // TODO: Handle error
             let guard = tx.lock().unwrap();
-            let _ = (*guard).send(format!("sending time: {}", self.every)); // TODO: Handle error
+            for result in results {
+                let _ = (*guard).send(result); // TODO: Handle error
+            }
             std::mem::drop(guard);
-            std::thread::sleep(std::time::Duration::from_secs(2));
+            std::thread::sleep(sleep_time);
         }
     }
-}
 
-/*
-impl Watch {
-    pub async fn watch(&self, cfg: &config::Config) {
-        let time: std::time::Duration = duration_string::DurationString::from_string(String::from(&self.every)).unwrap_or(duration_string::DurationString::new(std::time::Duration::from_secs(3600))).into();
-        println!("{:?}", time); // TODO: Use the time
-
-        let default_args: Vec<output::Output> = Vec::new(); // FIXME: This is a hack, dunno how to do it better, needs to live long enough
-        let mut store = std::collections::HashMap::<String,Vec<output::Output>>::new();
+    fn run(&self, id: &str) -> Result<Vec<data::Data>, Box<dyn std::error::Error>> {
+        let mut empty_ctx = data::Data::default();
+        empty_ctx.template = id.to_string();
+        let mut store: std::collections::HashMap<String, Vec<data::Data>> =
+            std::collections::HashMap::new();
+        store.insert(DEFAULT_STORE_KEY.to_string(), vec![empty_ctx]); // FIXME: This is a hack, dunno how to do it better, needs to live long enough
         for step in &self.steps {
-            let args: &Vec<output::Output> = store.get(&step.load.clone().unwrap_or(DEFAULT_STORE_KEY.to_string())).unwrap_or(&default_args);
-            match step.run(&cfg,&args).await {
-                Ok(res) => {
+            let context = store
+                .get(&step.load.clone().unwrap_or(DEFAULT_STORE_KEY.to_string())).ok_or("No store key found!")?;
+            match step.run(&context) {
+                Ok(data) => {
                     if let Some(store_key) = &step.save_as {
-                        store.insert(store_key.clone(), res.clone());
+                        store.insert(store_key.clone(), data.clone());
                     }
-                    store.insert(DEFAULT_STORE_KEY.to_string(), res)
-                },
-                Err(err) => {
-                    println!("[!] {}", err);
-                    break
+                    store.insert(DEFAULT_STORE_KEY.to_string(), data);
                 }
-            };
+                Err(e) => {
+                    println!("Error: {}", e);
+                    break;
+                }
+            }
         }
+
+        Ok(store.get(DEFAULT_STORE_KEY).unwrap().clone())
     }
 }
-*/

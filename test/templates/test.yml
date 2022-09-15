@@ -1,5 +1,5 @@
 ---
 id: test
 watch:
-  every: 2h
+  every: 60s
   steps: []
