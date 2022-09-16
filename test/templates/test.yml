@@ -1,5 +1,0 @@
----
-id: test
-watch:
-  every: 60s
-  steps: []

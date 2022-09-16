@@ -1,7 +1,11 @@
 mod config;
+/*
+mod storage;
 
 fn start() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = config::Config::new();
+    let storage = storage::Storage::new(&cfg)?;
+
     // load the all the templates
     let templates = intelligencce_templates::load_all(&cfg.templates)?;
 
@@ -22,7 +26,29 @@ fn start() -> Result<(), Box<dyn std::error::Error>> {
 
     // start the listenner
     for msg in rx {
-        println!("Out Rx: {:#?}", msg);
+        storage.publish(&msg)?;
+    }
+
+    Ok(())
+}
+
+*/
+
+fn start() -> Result<(), Box<dyn std::error::Error>> {
+    let cfg = config::Config::new();
+
+    let templates = intelligencce_templates::load_all(&cfg.templates)?;
+
+    let (tx, rx) = std::sync::mpsc::channel();
+    let atx = std::sync::Arc::new(std::sync::Mutex::new(tx));
+
+    for watcher in templates.get_watchers() {
+        let atx = std::sync::Arc::clone(&atx);
+        std::thread::spawn(move || watcher.start(atx));
+    }
+
+    for data in rx {
+        println!("{:#?}", data);
     }
 
     Ok(())

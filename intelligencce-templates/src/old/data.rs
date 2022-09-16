@@ -24,6 +24,10 @@ impl Data {
             content: content.to_string(),
         }
     }
+    pub fn serialize(&self) -> Result<String, Box<dyn std::error::Error>> {
+        Ok(serde_json::to_string(&self)?)
+    }
+    
     pub fn deserialize(&self, content: String) -> Result<Self, Box<dyn std::error::Error>> {
         Ok(serde_json::from_str(&content)?)
     }

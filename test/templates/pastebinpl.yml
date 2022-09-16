@@ -1,15 +1,25 @@
 ---
 id: pastebin.pl
-watch:
-  every: 1h
-  steps:
-  - name: Get links
+meta:
+  name: Poland Pastebin watcher
+  description: |
+    Monitorize Poland Pastebin (pastebin.pl) for new pastes.
+
+type: watcher
+every: 10s
+generate: source
+
+steps:
+  - name: Get recent pastes
     action: fetch
     options:
-      url: https://kike.wtf
+      url: https://pastebin.pl/lists
   - name: Extract links
     action: extract
     options:
-      query: href="(http.+?)"
+      query: href="https://pastebin.pl/view/([a-fA-F0-9]+?)"
       group: 1
-  - action: publish
+  - name: Fetch the raw paste
+    action: fetch
+    options:
+      url: https://pastebin.pl/view/raw/{content}
