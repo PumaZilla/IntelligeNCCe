@@ -152,7 +152,6 @@ impl TemplateWatcher {
                             data
                         })
                         .collect();
-                    println!("[+] Results...\n{:?}", results);
                     match tx.lock() {
                         Ok(tx) => results.iter().for_each(|data| {
                             let _ = (*tx).send(data.to_owned()); // TODO: Handle error

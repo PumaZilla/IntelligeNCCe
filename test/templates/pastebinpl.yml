@@ -6,7 +6,7 @@ meta:
     Monitorize Poland Pastebin (pastebin.pl) for new pastes.
 
 type: watcher
-every: 10s
+every: 1h
 generate: source
 
 steps:

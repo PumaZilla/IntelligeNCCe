@@ -433,6 +433,7 @@ dependencies = [
  "dotenv",
  "intelligencce-templates",
  "redis",
+ "regex",
 ]
 
 [[package]]

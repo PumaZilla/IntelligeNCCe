@@ -34,6 +34,12 @@ fn start() -> Result<(), Box<dyn std::error::Error>> {
 
 */
 
+fn find(re: &regex::Regex, data: &intelligencce_templates::Data) {
+    re.captures(&data.content).map(|cap| {
+        println!("Found: {}", cap.get(0).unwrap().as_str());
+    });
+}
+
 fn start() -> Result<(), Box<dyn std::error::Error>> {
     let cfg = config::Config::new();
 
@@ -47,8 +53,9 @@ fn start() -> Result<(), Box<dyn std::error::Error>> {
         std::thread::spawn(move || watcher.start(atx));
     }
 
+    let email = regex::Regex::new(r"([a-z0-9_+]([a-z0-9_+.]*[a-z0-9_+])?)@([a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,6})")?;
     for data in rx {
-        println!("{:#?}", data);
+        find(&email, &data);
     }
 
     Ok(())
