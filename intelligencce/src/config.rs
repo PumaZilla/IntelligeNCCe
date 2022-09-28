@@ -4,12 +4,22 @@ use clap::Parser;
 #[clap(author, version, about, long_about = None)]
 pub struct Config {
     #[clap(
+        short,
         long,
-        env = "REDIS_URL",
-        default_value = "redis://127.0.0.1:6379/",
-        help = "Redis URL"
+        env = "INTELLIGENCCE_ADDR",
+        default_value = "127.0.0.1:1433",
+        help = "Address to listen on"
     )]
-    pub redis: String,
+    pub address: String,
+
+    #[clap(
+        short,
+        long,
+        env = "INTELLIGENCCE_DB",
+        default_value = "postgres://postgres:postgres@localhost:5432/intelligencce",
+        help = "Database connection address"
+    )]
+    pub db: String,
 
     #[clap(
         short,
@@ -23,21 +33,28 @@ pub struct Config {
 }
 impl Config {
     pub fn new() -> Self {
-        dotenv::dotenv().ok();
+        Self::load_env();
         let mut cfg = Self::parse();
+        Self::check_templates(&mut cfg);
+        cfg
+    }
+
+    fn load_env() {
+        dotenv::dotenv().ok();
+    }
+
+    fn check_templates(&mut self) {
         // check the templates directory
-        if let Some(ref path) = cfg.templates_ {
-            cfg.templates = path.to_string();
+        if let Some(ref path) = self.templates_ {
+            self.templates = path.to_string();
         } else if let Some(path) = dirs::config_dir() {
             if let Some(cofgpath) = path.join("intelligencce/templates").to_str() {
-                cfg.templates = String::from(cofgpath);
-                let _ = std::fs::create_dir_all(&cfg.templates); // Fixme: handle error
+                self.templates = String::from(cofgpath);
+                let _ = std::fs::create_dir_all(&self.templates); // Fixme: handle error
             }
         }
-        if cfg.templates.is_empty() {
-            cfg.templates = "./".to_string();
+        if self.templates.is_empty() {
+            self.templates = "./".to_string();
         }
-        // return the config
-        cfg
     }
 }

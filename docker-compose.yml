@@ -1,11 +1,19 @@
 ---
 version: "3.8"
+
 services:
-  cache:
-    image: redis:alpine
-    container_name: cache
-    ports: [ 6379:6379 ]
+  db:
+    image: postgres:alpine
+    container_name: db
     restart: unless-stopped
-    volumes: [ storage_cache:/data:rw ]
+    ports: ["${POSTGRES_PORT:-5432}:5432"]
+    volumes:
+      - db:/var/lib/postgresql/data:rw
+      - ./intelligencce-server/db:/docker-entrypoint-initdb.d:ro
+    environment:
+      POSTGRES_USER:      ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD:  ${POSTGRES_PASS:-postgres}
+      POSTGRES_DB:        ${POSTGRES_NAME:-intelligencce}
+
 volumes:
-  storage_cache: {}
+  db:
