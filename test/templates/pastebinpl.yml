@@ -7,7 +7,7 @@ meta:
 
 type: watcher
 every: 1h
-generate: source
+generate: raw
 
 steps:
   - name: Get recent pastes

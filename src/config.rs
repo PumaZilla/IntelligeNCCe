@@ -1,6 +1,6 @@
 use clap::Parser;
 
-#[derive(Debug, clap::Parser)]
+#[derive(Debug, Clone, clap::Parser)]
 #[clap(author, version, about, long_about = None)]
 pub struct Config {
     #[clap(
@@ -20,6 +20,12 @@ pub struct Config {
         help = "Database connection address"
     )]
     pub db: String,
+
+    #[clap(
+        long,
+        help = "Expose insecure endpoints (like the GraphQL playground)"
+    )]
+    pub insecure: bool,
 
     #[clap(
         short,
