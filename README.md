@@ -1,6 +1,6 @@
 
 <div align="center">
-  <img src=".github/readme/artwork/logo_with_title.png" alt="IntelligeNCCe" width="500">
+  <img src=".github/readme/artwork/logo_with_title.png" alt="IntelligeNCCe" width="400">
   <br/>
 </div>
 
