@@ -1,3 +1,5 @@
+use crate::error::{Error, Result};
+
 const DEFAULT_KEY: &str = " ::default";
 
 #[derive(Debug, Clone, serde::Deserialize)]
@@ -8,8 +10,8 @@ pub struct TemplateWatcher {
     pub steps: Vec<super::step::TemplateStep>,
 }
 impl TemplateWatcher {
-    pub fn from_template(template: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        Ok(serde_yaml::from_str(&template)?)
+    pub fn from_template(template: &str) -> Result<Self> {
+        Ok(serde_yaml::from_str(&template).map_err(|e| Error::TemplateParseError(template.to_string(), e.to_string()))?)
     }
 
     fn run(&self) -> Vec<super::data::Data> {

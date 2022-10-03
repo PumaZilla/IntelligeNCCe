@@ -1,4 +1,5 @@
 use clap::Parser;
+use crate::error::{Error, Result};
 
 #[derive(Debug, Clone, clap::Parser)]
 #[clap(author, version, about, long_about = None)]
@@ -38,15 +39,35 @@ pub struct Config {
     pub templates: String,
 }
 impl Config {
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self> {
         Self::load_env();
+        Self::init_logger()?;
         let mut cfg = Self::parse();
         Self::check_templates(&mut cfg);
-        cfg
+
+        log::info!("{} v{}", std::env::var("CARGO_PKG_NAME").unwrap_or("intelligencce".to_string()), std::env::var("CARGO_PKG_VERSION").unwrap_or("0.0.0".to_string()));
+        Ok(cfg)
     }
 
     fn load_env() {
         dotenv::dotenv().ok();
+    }
+
+    fn init_logger() -> Result<()> {
+        // pattern
+        let pattern = log4rs::encode::pattern::PatternEncoder::new("{d(%Y-%m-%d %H:%M:%S)} | {h({l}):5.5} | {m}{n}");
+        // appenders
+        let console = log4rs::config::Appender::builder()
+            .build("console", Box::new(log4rs::append::console::ConsoleAppender::builder().encoder(Box::new(pattern)).build()));
+        // configurations
+        let root = log4rs::config::Root::builder()
+            .appender("console")
+            .build(log::LevelFilter::Debug);
+        let config = log4rs::config::Config::builder()
+            .appender(console)
+            .build(root).map_err(|e| Error::LoggerError(e.to_string()))?;
+        let _ = log4rs::init_config(config);
+        Ok(())
     }
 
     fn check_templates(&mut self) {

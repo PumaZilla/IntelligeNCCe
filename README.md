@@ -14,7 +14,7 @@
 </p>
 <br>
 
-## 📼 Clone me!
+## 🐑 Clone me!
 
 Clone or download the project:
 

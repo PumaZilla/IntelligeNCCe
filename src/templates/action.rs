@@ -1,3 +1,5 @@
+use crate::error::{Error, Result};
+
 #[derive(Debug, Clone, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TemplateAction {
@@ -11,9 +13,9 @@ impl std::fmt::Display for TemplateAction {
             f,
             "{}",
             match self {
-                Self::Debug => "Debugging the information",
-                Self::Extract => "Extracting data from previous step",
-                Self::Fetch => "Sending a request",
+                Self::Debug => "debugging the information",
+                Self::Extract => "extracting data from previous step",
+                Self::Fetch => "sending a request",
             }
         )
     }
@@ -37,10 +39,10 @@ impl TemplateAction {
         &self,
         context: Option<super::data::Data>,
         options: Option<std::collections::HashMap<String, String>>,
-    ) -> Result<(Vec<super::data::Data>, Vec<super::data::Data>), Box<dyn std::error::Error>> {
+    ) -> Result<(Vec<super::data::Data>, Vec<super::data::Data>)> {
         Ok(match self {
             Self::Debug => {
-                let ctx = context.ok_or("missing context")?;
+                let ctx = context.ok_or(Error::TemplateActionNoContextError(self.to_string()))?;
                 println!(
                     "{}",
                     options
@@ -52,16 +54,32 @@ impl TemplateAction {
             }
             Self::Extract => {
                 // check the values
-                let options = options.ok_or("missing options")?;
-                let context = context.ok_or("missing context")?;
-                let query = options.get("query").ok_or("missing query")?;
+                let options =
+                    options.ok_or(Error::TemplateActionNoOptionsError(self.to_string()))?;
+                let context =
+                    context.ok_or(Error::TemplateActionNoContextError(self.to_string()))?;
+                let query = options
+                    .get("query")
+                    .ok_or(Error::TemplateActionNoOptionError(
+                        self.to_string(),
+                        "query".to_string(),
+                    ))?;
                 let group: usize = options
                     .get("group")
                     .unwrap_or(&"0".to_string())
                     .parse()
-                    .map_err(|err| format!("cannot parse group as integer: {}", err))?;
-                let re = regex::Regex::new(query)
-                    .or_else(|err| Err(format!("invalid query {}: {}", query, err)))?;
+                    .map_err(|e| {
+                        Error::TemplateActionExecError(
+                            self.to_string(),
+                            format!("cannot parse group as integer ({})", e),
+                        )
+                    })?;
+                let re = regex::Regex::new(query).map_err(|e| {
+                    Error::TemplateActionExecError(
+                        self.to_string(),
+                        format!("invalid query ({})", e),
+                    )
+                })?;
                 let mut content = Vec::new();
                 re.captures_iter(&context.content).for_each(|capture| {
                     if capture.len() > group {
@@ -77,19 +95,28 @@ impl TemplateAction {
                 // check the values
                 let options: std::collections::HashMap<String, String> = match options {
                     Some(options) => options,
-                    None => Some(context.clone().ok_or("options missing")?)
-                        .and(Some(options.unwrap_or_default()))
-                        .unwrap(),
+                    None => Some(
+                        context
+                            .clone()
+                            .ok_or(Error::TemplateActionNoOptionsError(self.to_string()))?,
+                    )
+                    .and(Some(options.unwrap_or_default()))
+                    .unwrap(),
                 };
                 let url: String = match options.get("url") {
                     Some(url) => url.to_string(),
                     None => reqwest::Url::parse(
                         &context
                             .clone()
-                            .ok_or("there is not a valid context")?
+                            .ok_or(Error::TemplateActionNoContextError(self.to_string()))?
                             .content,
                     )
-                    .map_err(|err| format!("cannot parse URL from previous step: {}", err))?
+                    .map_err(|e| {
+                        Error::TemplateActionExecError(
+                            self.to_string(),
+                            format!("cannot parse URL from previous step ({})", e),
+                        )
+                    })?
                     .to_string(),
                 };
                 let method: reqwest::Method = reqwest::Method::from_bytes(
@@ -97,7 +124,10 @@ impl TemplateAction {
                         .get("method")
                         .unwrap_or(&"GET".to_string())
                         .as_bytes(),
-                )?;
+                )
+                .map_err(|_| {
+                    Error::TemplateActionNoOptionError(self.to_string(), "method".to_string())
+                })?;
                 // parse the headers
                 let headers: std::collections::HashMap<String, String> = options
                     .get("headers")
@@ -115,9 +145,26 @@ impl TemplateAction {
                 // create the request
                 let res = reqwest::blocking::Client::new()
                     .request(method, &url)
-                    .headers((&headers).try_into()?)
-                    .send()?
-                    .text()?;
+                    .headers((&headers).try_into().map_err(|e| {
+                        Error::TemplateActionExecError(
+                            self.to_string(),
+                            format!("unable to parse the headers ({})", e),
+                        )
+                    })?)
+                    .send()
+                    .map_err(|e| {
+                        Error::TemplateActionExecError(
+                            self.to_string(),
+                            format!("unable to send the rquest ({})", e),
+                        )
+                    })?
+                    .text()
+                    .map_err(|e| {
+                        Error::TemplateActionExecError(
+                            self.to_string(),
+                            format!("unable to retrieve the body ({})", e),
+                        )
+                    })?;
                 // send the request
                 (
                     vec![super::data::Data::from(

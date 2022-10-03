@@ -1,7 +1,10 @@
 mod routes;
 use crate::error::{Error, Result};
 
-pub async fn start(cfg: crate::config::Config, db: std::sync::Arc<crate::database::Connection>) -> Result<()> {
+pub async fn start(
+    cfg: crate::config::Config,
+    db: std::sync::Arc<crate::database::Connection>,
+) -> Result<()> {
     let addr = cfg.address.clone();
 
     actix_web::HttpServer::new(move || {
