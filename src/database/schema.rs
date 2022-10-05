@@ -1,5 +1,5 @@
 diesel::table! {
-    object (id) {
+    event (id) {
         id -> Int4,
         source -> Varchar,
         #[sql_name = "type"]

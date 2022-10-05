@@ -17,31 +17,31 @@ impl std::fmt::Display for TemplateStep {
     }
 }
 impl TemplateStep {
-    pub fn run(
+    pub async fn run(
         &self,
         context: Option<super::data::Data>,
     ) -> (Vec<super::data::Data>, Vec<super::data::Data>) {
-        println!("[*] {}", self);
         let ctx = context.clone();
         let opts = self.replace_variables(ctx);
-        self.action.run(context, opts)
+        self.action.run(context, opts).await
     }
 
-    pub fn run_multiple(
+    pub async fn run_multiple(
         &self,
         context: Option<Vec<super::data::Data>>,
     ) -> (Vec<super::data::Data>, Vec<super::data::Data>) {
         match context {
-            Some(context) => context.iter().fold(
-                (Vec::new(), Vec::new()),
-                |(mut context, mut content), ctx| {
-                    let (mut ctx, mut ctn) = self.run(Some(ctx.clone()));
-                    context.append(&mut ctx);
-                    content.append(&mut ctn);
-                    (context, content)
-                },
-            ),
-            None => self.run(None),
+            Some(context) => {
+                let mut new_context = Vec::new();
+                let mut new_content = Vec::new();
+                for ctx in context {
+                    let (ctx, content) = self.run(Some(ctx)).await;
+                    new_context.extend(ctx);
+                    new_content.extend(content);
+                }
+                (new_context, new_content)
+            },
+            None => self.run(None).await,
         }
     }
 

@@ -1,13 +1,8 @@
 mod routes;
-use crate::error::{Error, Result};
 
-pub async fn start(
-    cfg: crate::config::Config,
-    db: std::sync::Arc<crate::database::Connection>,
-) -> Result<()> {
+pub async fn start(cfg: crate::config::Config, db: std::sync::Arc<crate::database::Connection>) {
     let addr = cfg.address.clone();
-
-    actix_web::HttpServer::new(move || {
+    let srv = actix_web::HttpServer::new(move || {
         actix_web::App::new()
             .app_data(actix_web::web::Data::new(cfg.clone()))
             .app_data(actix_web::web::Data::new(db.clone()))
@@ -16,9 +11,14 @@ pub async fn start(
             ))
             .configure(routes::register)
     })
-    .bind(&addr)
-    .map_err(|_| Error::WebBindError(addr.to_string()))?
-    .run()
-    .await
-    .map_err(|e| Error::WebRuntimeError(e.to_string()))
+    .bind(&addr);
+    match srv {
+        Ok(srv) => {
+            log::info!("starting web server on {}...", &addr);
+            if let Err(_) = srv.run().await {
+                log::error!("{}", crate::error::Error::WebRuntimeError(addr.to_string()));
+            }
+        }
+        Err(_) => log::error!("{}", crate::error::Error::WebBindError(addr.to_string())),
+    }
 }

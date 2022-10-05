@@ -47,14 +47,22 @@ impl Templates {
         Ok(())
     }
 
-    pub fn get_triggers(
-        &self,
-        data_type: &data::DataType,
-    ) -> Option<&Vec<trigger::TemplateTrigger>> {
-        self.triggers.get(data_type)
+    pub async fn start(&self, pool: std::sync::Arc<crate::database::Connection>) {
+        self.start_watchers(&pool).await;
     }
-    pub fn get_watchers(&self) -> Vec<watcher::TemplateWatcher> {
-        self.watchers.clone()
+
+    async fn start_watchers(&self, pool: &std::sync::Arc<crate::database::Connection>) {
+        log::debug!("starting {} watcher(s)...", self.watchers.len());
+        // start all handlers and wait them to finish
+        let mut handles = Vec::new();
+        self.watchers.iter().for_each(|watcher| {
+            let pool = pool.clone();
+            let watcher = watcher.clone();
+            handles.push(tokio::spawn(async move {
+                watcher.start(pool).await;
+            }));
+        });
+        futures::future::join_all(handles).await;
     }
 }
 

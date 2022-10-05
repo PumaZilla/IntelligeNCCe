@@ -1,6 +1,6 @@
 pub mod graphql;
-mod models;
-mod schema;
+pub mod models;
+pub mod schema;
 
 use crate::error::{Error, Result};
 

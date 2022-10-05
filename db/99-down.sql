@@ -1,1 +1,1 @@
--- DROP TABLE IF EXISTS "object";
+-- DROP TABLE IF EXISTS "event";

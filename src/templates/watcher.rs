@@ -11,31 +11,34 @@ pub struct TemplateWatcher {
 }
 impl TemplateWatcher {
     pub fn from_template(template: &str) -> Result<Self> {
-        Ok(serde_yaml::from_str(&template).map_err(|e| Error::TemplateParseError(template.to_string(), e.to_string()))?)
+        Ok(serde_yaml::from_str(&template)
+            .map_err(|e| Error::TemplateParseError(template.to_string(), e.to_string()))?)
     }
 
-    fn run(&self) -> Vec<super::data::Data> {
+    async fn run(&self) -> Vec<super::data::Data> {
         let mut contents: Vec<super::data::Data> = Vec::new();
         let mut contexts: std::collections::HashMap<String, Option<Vec<super::data::Data>>> =
             std::collections::HashMap::new();
         contexts.insert(DEFAULT_KEY.to_string(), None);
-        self.steps.iter().for_each(|step| {
-            let (context, mut content) = step.run_multiple(
-                contexts
-                    .get(&step.load.clone().unwrap_or(DEFAULT_KEY.to_string()))
-                    .unwrap()
-                    .clone(),
-            );
-            contents.append(&mut content);
-            let new_context = match context.is_empty() {
+        for step in &self.steps {
+            let (new_contexts, mut new_contents) = step
+                .run_multiple(
+                    contexts
+                        .get(&step.load.clone().unwrap_or(DEFAULT_KEY.to_string()))
+                        .unwrap()
+                        .clone(),
+                )
+                .await;
+            contents.append(&mut new_contents);
+            let new_context = match new_contexts.is_empty() {
                 true => None,
-                false => Some(context),
+                false => Some(new_contexts),
             };
             if let Some(key) = &step.save_as {
                 contexts.insert(key.clone(), new_context.clone());
             }
             contexts.insert(DEFAULT_KEY.to_string(), new_context);
-        });
+        }
         contents.append(
             &mut contexts
                 .get(DEFAULT_KEY)
@@ -46,37 +49,55 @@ impl TemplateWatcher {
         contents
     }
 
-    pub fn start(
-        &self,
-        tx: std::sync::Arc<std::sync::Mutex<std::sync::mpsc::Sender<super::data::Data>>>,
-    ) {
-        println!(
-            "[*] Starting watcher {} (triggered every {})...",
-            &self.id, &self.every
+    pub async fn start(&self, pool: std::sync::Arc<crate::database::Connection>) {
+        log::debug!(
+            "starting watcher {} (triggered every {})...",
+            &self.id,
+            &self.every
         );
-        match humantime::parse_duration(&self.every) {
-            Ok(duration) => {
-                loop {
-                    println!("[*] Running watcher {}...", self.id);
-                    let results: Vec<super::data::Data> = self
-                        .run()
-                        .iter()
-                        .map(|data| {
-                            let mut data = data.clone();
-                            data.set_template(&self.id);
-                            data
-                        })
-                        .collect();
-                    match tx.lock() {
-                        Ok(tx) => results.iter().for_each(|data| {
-                            let _ = (*tx).send(data.to_owned()); // TODO: Handle error
-                        }),
-                        Err(err) => println!("[!] Cannot send data from {}: {}", &self.id, err),
-                    };
-                    std::thread::sleep(duration);
+        // check the time duration
+        let every = match humantime::parse_duration(&self.every) {
+            Ok(every) => every,
+            Err(e) => {
+                log::error!("invalid 'every' field in template {}: {}", self.id, e);
+                return;
+            }
+        };
+        loop {
+            // run the watcher
+            log::debug!("running watcher {}", self.id);
+            let results: Vec<super::data::Data> = self
+                .run()
+                .await
+                .iter()
+                .map(|data| {
+                    let mut data = data.clone();
+                    data.set_template(&self.id);
+                    data
+                })
+                .collect();
+            // save the results
+            log::debug!("{} result(s) found for watcher {}...", results.len(), self.id);
+            if results.len() > 0 {
+                println!(
+                    "[*] Saving {} results for watcher {}...",
+                    results.len(),
+                    self.id
+                );
+                for result in results {
+                    match result.into_model().save(&pool).await {
+                        Ok(ev) => log::trace!(
+                            "Saved result {} for watcher ({}::{}::{})",
+                            ev.id,
+                            ev.type_,
+                            ev.source,
+                            ev.location
+                        ),
+                        Err(e) => log::warn!("error saving result for watcher {}: {}", self.id, e),
+                    }
                 }
             }
-            Err(err) => println!("cannot parse duration from watcher {}: {}", &self.id, err),
+            std::thread::sleep(every);
         }
     }
 }

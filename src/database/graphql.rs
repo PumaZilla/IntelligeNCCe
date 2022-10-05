@@ -23,8 +23,8 @@ impl Query {
         "1"
     }
 
-    pub async fn object(ctx: &Context) -> juniper::FieldResult<Vec<super::models::object::Model>> {
-        super::models::object::Model::read(ctx).await
+    pub async fn event(ctx: &Context) -> juniper::FieldResult<Vec<super::models::event::Model>> {
+        super::models::event::Model::read(ctx).await
     }
 }
 
@@ -33,17 +33,17 @@ impl Query {
 pub struct Mutation;
 #[juniper::graphql_object(Context = Context)]
 impl Mutation {
-    pub async fn create_object(
+    pub async fn create_event(
         ctx: &Context,
-        object: super::models::object::NewModel,
-    ) -> juniper::FieldResult<super::models::object::Model> {
-        object.create(ctx).await
+        event: super::models::event::NewModel,
+    ) -> juniper::FieldResult<super::models::event::Model> {
+        event.create(ctx).await
     }
 
-    pub async fn delete_object(
+    pub async fn delete_event(
         ctx: &Context,
         id: i32,
-    ) -> juniper::FieldResult<super::models::object::Model> {
-        super::models::object::Model::delete(ctx, id).await
+    ) -> juniper::FieldResult<super::models::event::Model> {
+        super::models::event::Model::delete(ctx, id).await
     }
 }

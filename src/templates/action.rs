@@ -21,12 +21,12 @@ impl std::fmt::Display for TemplateAction {
     }
 }
 impl TemplateAction {
-    pub fn run(
+    pub async fn run(
         &self,
         context: Option<super::data::Data>,
         options: Option<std::collections::HashMap<String, String>>,
     ) -> (Vec<super::data::Data>, Vec<super::data::Data>) {
-        match self.execute(context, options) {
+        match self.execute(context, options).await {
             Ok((context, content)) => (context, content),
             Err(err) => {
                 println!("Error {}: {}", self, err);
@@ -35,7 +35,7 @@ impl TemplateAction {
         }
     }
 
-    fn execute(
+    async fn execute(
         &self,
         context: Option<super::data::Data>,
         options: Option<std::collections::HashMap<String, String>>,
@@ -143,7 +143,7 @@ impl TemplateAction {
                     .map(|header| (header[0].to_string(), header[1].to_string()))
                     .collect();
                 // create the request
-                let res = reqwest::blocking::Client::new()
+                let res = reqwest::Client::new()
                     .request(method, &url)
                     .headers((&headers).try_into().map_err(|e| {
                         Error::TemplateActionExecError(
@@ -151,21 +151,23 @@ impl TemplateAction {
                             format!("unable to parse the headers ({})", e),
                         )
                     })?)
-                    .send()
+                    .send().await
                     .map_err(|e| {
                         Error::TemplateActionExecError(
                             self.to_string(),
                             format!("unable to send the rquest ({})", e),
                         )
                     })?
-                    .text()
+                    .text().await
                     .map_err(|e| {
                         Error::TemplateActionExecError(
                             self.to_string(),
                             format!("unable to retrieve the body ({})", e),
                         )
                     })?;
-                // send the request
+                log::trace!("after");
+
+                // return the request
                 (
                     vec![super::data::Data::from(
                         context.clone().unwrap_or_default(),
