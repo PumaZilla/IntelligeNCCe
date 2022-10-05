@@ -3,7 +3,7 @@
 - Application milestones
     - [x] Arguments
         - [ ] Log filter level
-    - [ ] Handle signals (e.g: `SIGINT`) [[idea](https://www.reddit.com/r/rust/comments/pv8ja8/]how_to_handle_ctrlc_when_having_multiple_threads/)
+    - [ ] Handle signals (e.g: `SIGINT`) [[idea](https://www.reddit.com/r/rust/comments/pv8ja8/how_to_handle_ctrlc_when_having_multiple_threads/)]
     - [ ] Default async runtime (`tokio` or `std`)
     - [ ] Rust documentation
     - [ ] Error handling
@@ -29,5 +29,6 @@
     - [ ] Read Me
     - [ ] Reset commit history before release
 - Other milestones
+    - [ ] Merge `www` project with the parent directory
     - [ ] Docker image
     - [ ] Auto-created databases using docker
