@@ -27,11 +27,16 @@ impl Templates {
         }
     }
 
+    fn len(&self) -> usize {
+        self.ids.len()
+    }
+
     pub fn add_watcher(&mut self, watcher: watcher::TemplateWatcher) -> Result<()> {
         if self.ids.contains_key(&watcher.id) {
             return Err(Error::TemplateDuplicatedError(watcher.id));
         }
         self.ids.insert(watcher.id.clone(), true);
+        log::trace!("watcher \"{}\" found.", watcher.id);
         Ok(self.watchers.push(watcher))
     }
 
@@ -44,10 +49,12 @@ impl Templates {
             .events
             .iter()
             .for_each(|dt| self.triggers.get_mut(dt).unwrap().push(trigger.clone()));
+        log::trace!("trigger \"{}\" attached to {} events.", trigger.id, trigger.events.len());
         Ok(())
     }
 
     pub async fn start(&self, pool: std::sync::Arc<crate::database::Connection>) {
+        // start the watchers
         self.start_watchers(&pool).await;
     }
 
@@ -59,7 +66,9 @@ impl Templates {
             let pool = pool.clone();
             let watcher = watcher.clone();
             handles.push(tokio::spawn(async move {
+                log::trace!("starting watcher thread for {}...", &watcher.id);
                 watcher.start(pool).await;
+                log::trace!("thread for {} finished.", &watcher.id);
             }));
         });
         futures::future::join_all(handles).await;
@@ -101,11 +110,13 @@ enum TemplateTypes {
 fn find(root: &str) -> Result<Vec<String>> {
     let mut templates: Vec<String> = Vec::new();
     // read the given root
+    log::trace!("reading directory \"{}\"...", root);
     for entry in std::fs::read_dir(root).map_err(|_| Error::IODirectoryError(root.to_string()))? {
         let path = entry
             .map_err(|_| Error::IOPathError(root.to_string()))?
             .path();
         // check ig the path is a directory
+        log::trace!("checking if {:#?} is a directory...", path);
         if path.is_dir() {
             if let Some(newpath) = path.to_str() {
                 templates.append(&mut find(newpath)?);
@@ -114,9 +125,11 @@ fn find(root: &str) -> Result<Vec<String>> {
         // check if the path is a file with extension
         else if let Some(extension) = path.extension() {
             // check the extension
+            log::trace!("checking if {:#?} is a YAML file...", path);
             if extension == "yml" || extension == "yaml" {
                 // add the path to the list
                 if let Some(file) = path.to_str() {
+                    log::trace!("adding {} as a template.", file);
                     templates.push(file.to_string());
                 }
             }
@@ -127,18 +140,26 @@ fn find(root: &str) -> Result<Vec<String>> {
 }
 
 /// Loads all templates from a given path.
-pub fn load_all(path: &str) -> Result<Templates> {
-    // find all templates
+pub fn load_all(disabled: bool, path: &str) -> Result<Templates> {
     let mut templates: Templates = Templates::new();
+    // check if the templates should be disabled
+    if disabled {
+        log::warn!("templates are disabled.");
+        return Ok(templates);
+    }
+    // find all templates
     find(path)?
         .iter()
         .map(|path| {
             // read the template
+            log::trace!("loading template from {}", path);
             let content =
                 std::fs::read_to_string(path).map_err(|_| Error::IOReadError(path.to_string()))?;
             // check the base structure of a template
+            log::trace!("checking template structure for {}", path);
             let base = TemplateBase::from(&content)?;
             // convert the template
+            log::trace!("matching the template type for {}", path);
             match base.type_ {
                 TemplateTypes::Watcher => {
                     templates.add_watcher(watcher::TemplateWatcher::from_template(&content)?)
@@ -155,5 +176,7 @@ pub fn load_all(path: &str) -> Result<Templates> {
         .for_each(|res| {
             log::warn!("{}", res.err().unwrap());
         });
+    // return the templates
+    log::info!("{} template(s) loaded.", templates.len());
     Ok(templates)
 }

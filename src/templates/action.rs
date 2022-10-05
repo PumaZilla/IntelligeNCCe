@@ -165,7 +165,6 @@ impl TemplateAction {
                             format!("unable to retrieve the body ({})", e),
                         )
                     })?;
-                log::trace!("after");
 
                 // return the request
                 (

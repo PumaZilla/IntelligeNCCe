@@ -1,6 +1,11 @@
 mod routes;
 
 pub async fn start(cfg: crate::config::Config, db: std::sync::Arc<crate::database::Connection>) {
+    // check if disabled
+    if cfg.noserver {
+        log::warn!("web server is disabled");
+        return;
+    }
     let addr = cfg.address.clone();
     let srv = actix_web::HttpServer::new(move || {
         actix_web::App::new()
@@ -14,7 +19,7 @@ pub async fn start(cfg: crate::config::Config, db: std::sync::Arc<crate::databas
     .bind(&addr);
     match srv {
         Ok(srv) => {
-            log::info!("starting web server on {}...", &addr);
+            log::info!("starting web server on http://{}/", &addr);
             if let Err(_) = srv.run().await {
                 log::error!("{}", crate::error::Error::WebRuntimeError(addr.to_string()));
             }

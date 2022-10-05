@@ -8,7 +8,7 @@ mod web;
 #[tokio::main]
 async fn main() -> () {
     if let Err(error) = start().await {
-        eprintln!("[!] {}", error);
+        log::error!("{}", error);
         std::process::exit(1);
     }
 }
@@ -19,9 +19,9 @@ async fn start() -> error::Result<()> {
     // connect to the database
     let db = database::establish_connection(&cfg.db)?;
     let shared_db = std::sync::Arc::new(db);
-    // load the templates
-    let templates = templates::load_all(&cfg.templates)?;
+    // load and run the templates
+    let tmpl = templates::load_all(cfg.notemplates, &cfg.templates)?;
     // start the templates and the web server
-    futures::join!(templates.start(shared_db.clone()), web::start(cfg, shared_db));
+    futures::join!(tmpl.start(shared_db.clone()), web::start(cfg, shared_db));
     Ok(())
 }
