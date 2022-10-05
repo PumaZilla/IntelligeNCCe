@@ -8,6 +8,7 @@ impl juniper::Context for Context {}
 
 pub type Schema = juniper::RootNode<'static, Query, Mutation, juniper::EmptySubscription<Context>>;
 pub fn build_schema() -> Schema {
+    log::trace!("building graphql schema");
     Schema::new(Query, Mutation, juniper::EmptySubscription::new())
 }
 
@@ -17,13 +18,16 @@ pub struct Query;
 #[juniper::graphql_object(Context = Context)]
 impl Query {
     pub async fn health() -> bool {
+        log::trace!("graphql query received: health");
         true
     }
     pub async fn api_version() -> &'static str {
+        log::trace!("graphql query received: apiVersion");
         "1"
     }
 
     pub async fn event(ctx: &Context) -> juniper::FieldResult<Vec<super::models::event::Model>> {
+        log::trace!("graphql query received: event");
         super::models::event::Model::read(ctx).await
     }
 }
@@ -37,6 +41,7 @@ impl Mutation {
         ctx: &Context,
         event: super::models::event::NewModel,
     ) -> juniper::FieldResult<super::models::event::Model> {
+        log::trace!("graphql mutation received: createEvent");
         event.create(ctx).await
     }
 
@@ -44,6 +49,7 @@ impl Mutation {
         ctx: &Context,
         id: i32,
     ) -> juniper::FieldResult<super::models::event::Model> {
+        log::trace!("graphql mutation received: deleteEvent");
         super::models::event::Model::delete(ctx, id).await
     }
 }

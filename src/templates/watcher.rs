@@ -77,23 +77,19 @@ impl TemplateWatcher {
                 })
                 .collect();
             // save the results
-            log::debug!("{} result(s) found for watcher {}...", results.len(), self.id);
+            log::info!("{} result(s) found using watcher {}...", results.len(), self.id);
             if results.len() > 0 {
-                println!(
-                    "[*] Saving {} results for watcher {}...",
-                    results.len(),
-                    self.id
-                );
                 for result in results {
-                    match result.into_model().save(&pool).await {
+                    match result.clone().into_model().save(&pool).await {
                         Ok(ev) => log::trace!(
-                            "Saved result {} for watcher ({}::{}::{})",
+                            "saved result {} from watcher {} ({}::{}B::{})",
                             ev.id,
-                            ev.type_,
                             ev.source,
+                            ev.type_,
+                            ev.data.len(),
                             ev.location
                         ),
-                        Err(e) => log::warn!("error saving result for watcher {}: {}", self.id, e),
+                        Err(e) => log::warn!("error saving result for watcher {} ({}): {}", self.id, result.source, e),
                     }
                 }
             }

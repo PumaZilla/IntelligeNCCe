@@ -29,7 +29,7 @@ impl TemplateAction {
         match self.execute(context, options).await {
             Ok((context, content)) => (context, content),
             Err(err) => {
-                println!("Error {}: {}", self, err);
+                log::error!("{}", err);
                 (Vec::new(), Vec::new())
             }
         }
@@ -151,14 +151,16 @@ impl TemplateAction {
                             format!("unable to parse the headers ({})", e),
                         )
                     })?)
-                    .send().await
+                    .send()
+                    .await
                     .map_err(|e| {
                         Error::TemplateActionExecError(
                             self.to_string(),
-                            format!("unable to send the rquest ({})", e),
+                            format!("unable to send the request ({})", e),
                         )
                     })?
-                    .text().await
+                    .text()
+                    .await
                     .map_err(|e| {
                         Error::TemplateActionExecError(
                             self.to_string(),

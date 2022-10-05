@@ -23,6 +23,7 @@ impl TemplateStep {
     ) -> (Vec<super::data::Data>, Vec<super::data::Data>) {
         let ctx = context.clone();
         let opts = self.replace_variables(ctx);
+        log::debug!("{}", self);
         self.action.run(context, opts).await
     }
 

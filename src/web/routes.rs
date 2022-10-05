@@ -23,15 +23,21 @@ async fn index() -> impl actix_web::Responder {
 const GRAPHQL_ENDPOINT: &str = "/graphql";
 
 async fn graphql(
-    req: actix_web::web::Json<juniper::http::GraphQLRequest>,
+    req: actix_web::HttpRequest,
+    gqlreq: actix_web::web::Json<juniper::http::GraphQLRequest>,
     schema: actix_web::web::Data<crate::database::graphql::Schema>,
     db: actix_web::web::Data<std::sync::Arc<crate::database::Connection>>,
 ) -> impl actix_web::Responder {
-    log::trace!("new graphql request received.");
+    log::trace!(
+        "new graphql request received from {}.",
+        req.peer_addr()
+            .map(|x| x.to_string())
+            .unwrap_or("someone".to_string())
+    );
     let ctx = crate::database::graphql::Context {
         pool: db.get_ref().clone(),
     };
-    let res = req.execute(&schema, &ctx).await;
+    let res = gqlreq.execute(&schema, &ctx).await;
     actix_web::HttpResponse::Ok().json(res)
 }
 

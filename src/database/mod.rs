@@ -7,6 +7,7 @@ use crate::error::{Error, Result};
 pub type Connection = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<diesel::pg::PgConnection>>;
 
 pub fn establish_connection(address: &str) -> Result<Connection> {
+    log::debug!("connecting to database at {}", address);
     Ok(diesel::r2d2::Pool::builder()
         .test_on_check_out(true)
         .max_size(10)

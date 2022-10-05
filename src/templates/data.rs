@@ -16,15 +16,8 @@ impl Default for Data {
     }
 }
 impl Data {
-    pub fn new(template: &str, type_: DataType, source: &str, content: &str) -> Self {
-        Self {
-            type_,
-            template: template.to_string(),
-            source: source.to_string(),
-            content: content.to_string(),
-        }
-    }
     pub fn from(prev: Self, source: &str, content: &str) -> Self {
+        log::trace!("updating data from {} (prev: {})", source, prev.source);
         Self {
             template: prev.template,
             type_: prev.type_,
@@ -33,6 +26,7 @@ impl Data {
         }
     }
     pub fn content_from(prev: Self, content: &str) -> Self {
+        log::trace!("updating content from {}", prev.source);
         Self {
             template: prev.template,
             type_: prev.type_,
@@ -45,6 +39,7 @@ impl Data {
     }
 
     pub fn into_model(self) -> crate::database::models::event::NewModel {
+        log::trace!("converting data into model...");
         crate::database::models::event::NewModel {
             source: self.template,
             type_: self.type_.to_string(),
