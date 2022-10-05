@@ -64,7 +64,7 @@ impl TemplateStep {
                                 } else {
                                     match placeholder {
                                         "source" => &context.source,
-                                        "content" => &context.content,
+                                        "content" => &context.data,
                                         _ => placeholder,
                                     }
                                     .to_string()

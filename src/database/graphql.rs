@@ -30,6 +30,13 @@ impl Query {
         log::trace!("graphql query received: event");
         super::models::event::Model::read(ctx).await
     }
+
+    pub async fn keyword(
+        ctx: &Context,
+    ) -> juniper::FieldResult<Vec<super::models::keyword::Model>> {
+        log::trace!("graphql query received: keyword");
+        super::models::keyword::Model::read(ctx).await
+    }
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
@@ -44,12 +51,26 @@ impl Mutation {
         log::trace!("graphql mutation received: createEvent");
         event.create(ctx).await
     }
-
     pub async fn delete_event(
         ctx: &Context,
         id: i32,
     ) -> juniper::FieldResult<super::models::event::Model> {
         log::trace!("graphql mutation received: deleteEvent");
         super::models::event::Model::delete(ctx, id).await
+    }
+
+    pub async fn create_keyword(
+        ctx: &Context,
+        keyword: super::models::keyword::NewModel,
+    ) -> juniper::FieldResult<super::models::keyword::Model> {
+        log::trace!("graphql mutation received: createKeyword");
+        keyword.create(ctx).await
+    }
+    pub async fn delete_keyword(
+        ctx: &Context,
+        id: i32,
+    ) -> juniper::FieldResult<super::models::keyword::Model> {
+        log::trace!("graphql mutation received: deleteKeyword");
+        super::models::keyword::Model::delete(ctx, id).await
     }
 }

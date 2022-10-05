@@ -4,22 +4,18 @@ meta:
   name: Poland Pastebin watcher
   description: |
     Monitorize Poland Pastebin (pastebin.pl) for new pastes.
-
-type: watcher
 every: 1h
-generate: raw
-
 steps:
-  - name: Get recent pastes
+  - name: getting recent pastes...
     action: fetch
     options:
       url: https://pastebin.pl/lists
-  - name: Extract links
+  - name: extracting ids from hrefs
     action: extract
     options:
       query: href="https://pastebin.pl/view/([a-fA-F0-9]+?)"
       group: 1
-  - name: Fetch the raw paste
+  - name: fetching the raw paste
     action: fetch
     options:
       url: https://pastebin.pl/view/raw/{content}

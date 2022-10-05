@@ -3,7 +3,7 @@ pub struct Data {
     pub template: String,
     pub type_: DataType,
     pub source: String,
-    pub content: String,
+    pub data: String,
 }
 impl Default for Data {
     fn default() -> Self {
@@ -11,27 +11,27 @@ impl Default for Data {
             template: "-- Unknown template".to_string(),
             type_: DataType::Source,
             source: "-- Unknown source".to_string(),
-            content: "-- No content".to_string(),
+            data: "-- No data".to_string(),
         }
     }
 }
 impl Data {
-    pub fn from(prev: Self, source: &str, content: &str) -> Self {
+    pub fn from(prev: Self, source: &str, data: &str) -> Self {
         log::trace!("updating data from {} (prev: {})", source, prev.source);
         Self {
             template: prev.template,
             type_: prev.type_,
             source: source.to_string(),
-            content: content.to_string(),
+            data: data.to_string(),
         }
     }
-    pub fn content_from(prev: Self, content: &str) -> Self {
-        log::trace!("updating content from {}", prev.source);
+    pub fn data_from(prev: Self, data: &str) -> Self {
+        log::trace!("updating data from {}", prev.source);
         Self {
             template: prev.template,
             type_: prev.type_,
             source: prev.source,
-            content: content.to_string(),
+            data: data.to_string(),
         }
     }
     pub fn set_template(&mut self, template: &str) {
@@ -41,10 +41,10 @@ impl Data {
     pub fn into_model(self) -> crate::database::models::event::NewModel {
         log::trace!("converting data into model...");
         crate::database::models::event::NewModel {
-            source: self.template,
+            template: self.template,
             type_: self.type_.to_string(),
-            location: self.source,
-            data: self.content,
+            source: self.source,
+            data: self.data,
         }
     }
 }
@@ -59,7 +59,7 @@ pub enum DataType {
     Source,
 }
 impl DataType {
-    pub fn iter() -> std::slice::Iter<'static, Self> {
+    pub fn _iter() -> std::slice::Iter<'static, Self> {
         static TYPES: [DataType; 3] = [DataType::Domain,DataType::Email,DataType::Source];
         TYPES.iter()
     }

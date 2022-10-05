@@ -48,7 +48,7 @@ impl TemplateAction {
                     options
                         .unwrap_or_default()
                         .get("message")
-                        .unwrap_or(&ctx.content)
+                        .unwrap_or(&ctx.data)
                 );
                 (vec![ctx], Vec::new())
             }
@@ -81,9 +81,9 @@ impl TemplateAction {
                     )
                 })?;
                 let mut content = Vec::new();
-                re.captures_iter(&context.content).for_each(|capture| {
+                re.captures_iter(&context.data).for_each(|capture| {
                     if capture.len() > group {
-                        content.push(super::data::Data::content_from(
+                        content.push(super::data::Data::data_from(
                             context.clone(),
                             &capture[group],
                         ));
@@ -109,7 +109,7 @@ impl TemplateAction {
                         &context
                             .clone()
                             .ok_or(Error::TemplateActionNoContextError(self.to_string()))?
-                            .content,
+                            .data,
                     )
                     .map_err(|e| {
                         Error::TemplateActionExecError(

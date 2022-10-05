@@ -1,29 +1,23 @@
 mod action;
 mod data;
 mod step;
-mod trigger;
-mod watcher;
 
 use crate::error::{Error, Result};
+
+const DEFAULT_SLEEP_TICK: u64 = 2;
+const DEFAULT_KEY: &str = " ::default";
 
 #[derive(Debug, Clone, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct Templates {
     ids: std::collections::HashMap<String, bool>,
-    watchers: Vec<watcher::TemplateWatcher>,
-    triggers: std::collections::HashMap<data::DataType, Vec<trigger::TemplateTrigger>>,
+    templates: Vec<Template>,
 }
 impl Templates {
     pub fn new() -> Self {
-        let mut triggers: std::collections::HashMap<data::DataType, Vec<trigger::TemplateTrigger>> =
-            std::collections::HashMap::new();
-        data::DataType::iter().for_each(|dt| {
-            triggers.insert(dt.clone(), Vec::new());
-        });
         Self {
             ids: std::collections::HashMap::new(),
-            watchers: Vec::new(),
-            triggers: triggers,
+            templates: Vec::new(),
         }
     }
 
@@ -31,44 +25,26 @@ impl Templates {
         self.ids.len()
     }
 
-    pub fn add_watcher(&mut self, watcher: watcher::TemplateWatcher) -> Result<()> {
-        if self.ids.contains_key(&watcher.id) {
-            return Err(Error::TemplateDuplicatedError(watcher.id));
+    pub fn append(&mut self, template: Template) -> Result<()> {
+        if self.ids.contains_key(&template.id) {
+            return Err(Error::TemplateDuplicatedError(template.id));
         }
-        self.ids.insert(watcher.id.clone(), true);
-        log::trace!("watcher \"{}\" found.", watcher.id);
-        Ok(self.watchers.push(watcher))
+        self.ids.insert(template.id.clone(), true);
+        log::trace!("template \"{}\" loaded.", template.id);
+        Ok(self.templates.push(template))
     }
 
-    pub fn add_trigger(&mut self, trigger: trigger::TemplateTrigger) -> Result<()> {
-        if self.ids.contains_key(&trigger.id) {
-            return Err(Error::TemplateDuplicatedError(trigger.id));
-        }
-        self.ids.insert(trigger.id.clone(), true);
-        trigger
-            .events
-            .iter()
-            .for_each(|dt| self.triggers.get_mut(dt).unwrap().push(trigger.clone()));
-        log::trace!("trigger \"{}\" attached to {} events.", trigger.id, trigger.events.len());
-        Ok(())
-    }
-
-    pub async fn start(&self, pool: std::sync::Arc<crate::database::Connection>) {
-        // start the watchers
-        self.start_watchers(&pool).await;
-    }
-
-    async fn start_watchers(&self, pool: &std::sync::Arc<crate::database::Connection>) {
-        log::debug!("starting {} watcher(s)...", self.watchers.len());
+    pub async fn run_all(&self, pool: std::sync::Arc<crate::database::Connection>) {
+        log::debug!("starting {} template(s)...", self.len());
         // start all handlers and wait them to finish
         let mut handles = Vec::new();
-        self.watchers.iter().for_each(|watcher| {
+        self.templates.iter().for_each(|template| {
             let pool = pool.clone();
-            let watcher = watcher.clone();
+            let template = template.clone();
             handles.push(tokio::spawn(async move {
-                log::trace!("starting watcher thread for {}...", &watcher.id);
-                watcher.start(pool).await;
-                log::trace!("thread for {} finished.", &watcher.id);
+                log::trace!("starting template thread for {}...", &template.id);
+                template.start(pool).await;
+                log::trace!("thread for {} finished.", &template.id);
             }));
         });
         futures::future::join_all(handles).await;
@@ -80,28 +56,117 @@ impl Templates {
 /// The base structure of a generic template. Only field `type` is checked in order to determine the type of the template.
 #[derive(Debug, Clone, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub struct TemplateBase {
-    /// The template type.
-    #[serde(rename = "type")]
-    type_: TemplateTypes,
+pub struct Template {
+    pub id: String,
+    pub every: String,
+    pub steps: Vec<step::TemplateStep>,
 }
-impl TemplateBase {
+impl Template {
     pub fn from(template: &str) -> Result<Self> {
         Ok(serde_yaml::from_str(&template)
             .map_err(|e| Error::TemplateParseError(template.to_string(), e.to_string()))?)
     }
-}
 
-// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+    pub async fn start(&self, pool: std::sync::Arc<crate::database::Connection>) {
+        log::debug!(
+            "starting template {} (triggered every {})...",
+            &self.id,
+            &self.every
+        );
+        // check the time duration
+        let every = match humantime::parse_duration(&self.every) {
+            Ok(every) => every,
+            Err(e) => {
+                log::error!("invalid 'every' attribute in template {}: {}", self.id, e);
+                return;
+            }
+        };
+        loop {
+            // run the watcher
+            log::debug!("executing template {}", self.id);
+            let results: Vec<data::Data> = self
+                .execute()
+                .await
+                .iter()
+                .map(|data| {
+                    let mut data = data.clone();
+                    data.set_template(&self.id);
+                    data
+                })
+                .collect();
+            // save the results
+            log::info!(
+                "{} result(s) found using template {}...",
+                results.len(),
+                self.id
+            );
+            if results.len() > 0 {
+                for result in results {
+                    match result.clone().into_model().save(&pool).await {
+                        Ok(ev) => log::trace!(
+                            "saved result {} from template {} ({}::{}B::{})",
+                            ev.id,
+                            ev.template,
+                            ev.type_,
+                            ev.data.len(),
+                            ev.source
+                        ),
+                        Err(e) => log::warn!(
+                            "error saving result for template {} ({}): {}",
+                            self.id,
+                            result.source,
+                            e
+                        ),
+                    }
+                }
+            }
+            // wait for the next execution sleeping for 2 seconds each time
+            let mut sleep = every.as_secs();
+            while sleep > 0 {
+                sleep -= DEFAULT_SLEEP_TICK;
+                tokio::time::sleep(std::time::Duration::from_secs(DEFAULT_SLEEP_TICK)).await;
+            }
+        }
+    }
 
-/// Template types. Two types are currently supported: `trigger` and `watcher`.
-#[derive(Debug, Clone, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
-enum TemplateTypes {
-    /// Trigger an action when data is received.
-    Trigger,
-    /// Monitor the state of a system periodically.
-    Watcher,
+    async fn execute(&self) -> Vec<data::Data> {
+        let mut contents: Vec<data::Data> = Vec::new();
+        let mut contexts: std::collections::HashMap<String, Option<Vec<data::Data>>> =
+            std::collections::HashMap::new();
+        contexts.insert(DEFAULT_KEY.to_string(), None);
+        // run each step
+        for step in &self.steps {
+            // run the step with all the context and options
+            let (new_contexts, mut new_contents) = step
+                .run_multiple(
+                    contexts
+                        .get(&step.load.clone().unwrap_or(DEFAULT_KEY.to_string()))
+                        .unwrap()
+                        .clone(),
+                )
+                .await;
+            // update the contents
+            contents.append(&mut new_contents);
+            // save the new contexts in the store
+            let new_context = match new_contexts.is_empty() {
+                true => None,
+                false => Some(new_contexts),
+            };
+            if let Some(key) = &step.save_as {
+                contexts.insert(key.clone(), new_context.clone());
+            }
+            contexts.insert(DEFAULT_KEY.to_string(), new_context);
+        }
+        // return the contents
+        contents.append(
+            &mut contexts
+                .get(DEFAULT_KEY)
+                .unwrap()
+                .clone()
+                .unwrap_or_default(),
+        );
+        contents
+    }
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
@@ -152,31 +217,20 @@ pub fn load_all(disabled: bool, path: &str) -> Result<Templates> {
         .iter()
         .map(|path| {
             // read the template
-            log::trace!("loading template from {}", path);
+            log::trace!("reading template from {}", path);
             let content =
                 std::fs::read_to_string(path).map_err(|_| Error::IOReadError(path.to_string()))?;
             // check the base structure of a template
             log::trace!("checking template structure for {}", path);
-            let base = TemplateBase::from(&content)?;
-            // convert the template
-            log::trace!("matching the template type for {}", path);
-            match base.type_ {
-                TemplateTypes::Watcher => {
-                    templates.add_watcher(watcher::TemplateWatcher::from_template(&content)?)
-                }
-                TemplateTypes::Trigger => {
-                    templates.add_trigger(trigger::TemplateTrigger::from_template(&content)?)
-                }
-            }?;
-            Ok(())
+            Ok(Template::from(&content)?)
         })
-        .collect::<Vec<Result<()>>>()
-        .into_iter()
-        .filter(|res| res.is_err())
-        .for_each(|res| {
-            log::warn!("{}", res.err().unwrap());
+        .for_each(|res: Result<Template>| match res {
+            Ok(template) => match templates.append(template) {
+                Err(e) => log::warn!("{}", e),
+                _ => {}
+            },
+            Err(e) => log::warn!("{}", e),
         });
-    // return the templates
     log::info!("{} template(s) loaded.", templates.len());
     Ok(templates)
 }

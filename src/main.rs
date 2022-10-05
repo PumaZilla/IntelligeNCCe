@@ -22,6 +22,6 @@ async fn start() -> error::Result<()> {
     // load and run the templates
     let tmpl = templates::load_all(cfg.notemplates, &cfg.templates)?;
     // start the templates and the web server
-    futures::join!(tmpl.start(shared_db.clone()), web::start(cfg, shared_db));
+    futures::join!(tmpl.run_all(shared_db.clone()), web::start(cfg, shared_db));
     Ok(())
 }

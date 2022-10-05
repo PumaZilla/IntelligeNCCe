@@ -6,39 +6,60 @@ query Builtins {
 }
 
 mutation EventC {
-  domain: createEvent(event: {source: "::investigation", type: "domain", location: "::investigation", data: "kike.wtf"}) {
+  createEvent(event: {template: "playground", type: "paste", source: "https://kike.wtf/", data: "Cupcake ipsum dolor sit amet croissant bonbon. I love wafer jelly jelly beans I love. Pudding biscuit chocolate cake gingerbread lollipop jelly-o jelly-o. Gummies croissant tiramisu halvah toffee caramels. Cake danish toffee macaroon chocolate dessert chocolate cake cotton candy. Dragée chocolate cake jelly-o cookie apple pie liquorice liquorice. Liquorice chupa chups I love dessert cake I love apple pie ice cream."}) {
     id
-    source
+    template
     type
-    location
-    data
-  }
-  
-  keyword: createEvent(event: {source: "::investigation", type: "keyword", location: "::investigation", data: "Kike Fontan"}) {
-    id
     source
-    type
-    location
     data
+    createdAt
   }
 }
-
 query EventR {
   event {
     id
-    source
+    template
     type
-    location
+    source
     data
+    createdAt
   }
 }
-
 mutation EventD {
   deleteEvent(id: 1) {
     id
-    source
+    template
     type
-    location
+    source
     data
+    createdAt
+  }
+}
+
+mutation KeywordC {
+  createKeyword(keyword: {type: "domain", value: "kike.wtf"}) {
+    id
+    type
+    value
+    createdAt
+    lastConsulted
+  }
+}
+query KeywordR {
+  keyword {
+    id
+    type
+    value
+    createdAt
+    lastConsulted
+  }
+}
+mutation KeywordD {
+  deleteKeyword(id: 1) {
+    id
+    type
+    value
+    createdAt
+    lastConsulted
   }
 }
