@@ -62,7 +62,7 @@ impl NewModel {
     pub async fn save(
         &self,
         pool: &crate::database::Connection,
-    ) -> Result<Model,Box<dyn std::error::Error>> {
+    ) -> std::result::Result<Model,Box<dyn std::error::Error>> {
         // save it into the database
         use diesel::RunQueryDsl;
         let mut client = pool.get()?;

@@ -48,8 +48,20 @@ impl Event {
         }
     }
 
-    pub fn check(&self) {
-        unimplemented!()
+    pub fn check_content(
+        &self,
+        keywords: &std::collections::HashMap<i32, regex::Regex>,
+    ) -> Vec<i32> {
+        keywords
+            .iter()
+            .filter_map(|(id, re)| {
+                if re.is_match(&self.data) {
+                    Some(*id)
+                } else {
+                    None
+                }
+            })
+            .collect()
     }
 }
 
@@ -64,7 +76,7 @@ pub enum EventType {
 }
 impl EventType {
     pub fn _iter() -> std::slice::Iter<'static, Self> {
-        static TYPES: [EventType; 3] = [EventType::Domain,EventType::Email,EventType::Raw];
+        static TYPES: [EventType; 3] = [EventType::Domain, EventType::Email, EventType::Raw];
         TYPES.iter()
     }
 }

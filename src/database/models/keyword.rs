@@ -1,11 +1,7 @@
+use crate::error::{Error, Result};
+
 #[derive(
-    Clone,
-    Debug,
-    PartialEq,
-    serde::Deserialize,
-    juniper::GraphQLObject,
-    diesel::Queryable,
-    diesel::Selectable,
+    Clone, Debug, PartialEq, serde::Deserialize, juniper::GraphQLObject, diesel::Queryable,
 )]
 #[graphql(name = "Keyword")]
 #[diesel(table_name = crate::database::schema::keyword)]
@@ -22,10 +18,18 @@ pub struct Model {
     pub last_consulted: chrono::NaiveDateTime,
 }
 impl Model {
-    pub async fn read(ctx: &crate::database::graphql::Context) -> juniper::FieldResult<Vec<Self>> {
+    pub async fn all(pool: &crate::database::Connection) -> Result<Vec<Model>> {
         use diesel::RunQueryDsl;
-        let mut client = ctx.pool.get()?;
-        Ok(crate::database::schema::keyword::table.load::<Self>(&mut client)?)
+        let mut client = pool
+            .get()
+            .map_err(|e| Error::DatabasePoolError(e.to_string()))?;
+        Ok(crate::database::schema::keyword::table
+            .load::<Model>(&mut client)
+            .map_err(|e| Error::DatabaseReadError(e.to_string()))?)
+    }
+
+    pub async fn read(ctx: &crate::database::graphql::Context) -> juniper::FieldResult<Vec<Self>> {
+        Ok(Self::all(&ctx.pool).await?)
     }
 
     pub async fn update(
@@ -71,7 +75,8 @@ impl NewModel {
     pub async fn save(
         &self,
         pool: &crate::database::Connection,
-    ) -> Result<Model, Box<dyn std::error::Error>> {
+    ) -> std::result::Result<Model, Box<dyn std::error::Error>> {
+        // FIXME: proper error
         use diesel::RunQueryDsl;
         let mut client = pool.get()?;
         Ok(diesel::insert_into(crate::database::schema::keyword::table)

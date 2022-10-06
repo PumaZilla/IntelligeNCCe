@@ -94,29 +94,57 @@ impl Template {
                     data
                 })
                 .collect();
-            // save the results
-            log::info!(
+            // check the results
+            log::debug!(
                 "{} result(s) found using template {}...",
                 results.len(),
                 self.id
             );
             if results.len() > 0 {
+                // upload the keywords
+                let mut keywords = std::collections::HashMap::<i32, regex::Regex>::new();
+                let db_keywords = crate::database::models::keyword::Model::all(&pool).await;
+                match db_keywords {
+                    Ok(db_keywords) => {
+                        db_keywords.iter().for_each(|keyword| {
+                            match regex::RegexBuilder::new(&regex::escape(&keyword.value))
+                                .case_insensitive(true)
+                                .build()
+                            {
+                                Ok(re) => {
+                                    keywords.insert(keyword.id, re);
+                                }
+                                Err(_) => {
+                                    log::warn!("invalid keyword as regex ({})", keyword.value)
+                                }
+                            }
+                        });
+                    }
+                    Err(e) => log::error!("error fetching keywords :: {}", e),
+                };
+                // check the raw results
                 for result in results {
-                    match result.clone().into_model().save(&pool).await {
-                        Ok(ev) => log::trace!(
-                            "saved result {} from template {} ({}::{}B::{})",
-                            ev.id,
-                            ev.template,
-                            ev.type_,
-                            ev.data.len(),
-                            ev.source
-                        ),
-                        Err(e) => log::warn!(
-                            "error saving result for template {} ({}): {}",
-                            self.id,
-                            result.source,
-                            e
-                        ),
+                    // check the keywords
+                    if result.type_ == event::EventType::Raw {
+                        let ids = result.check_content(&keywords);
+                        if ids.len() > 0 {
+                            // update the result
+                            let model = result.into_model();
+                            match model.save(&pool).await {
+                                Ok(ev) => log::info!("new event found: {}", ev.source),
+                                Err(e) => log::error!("error saving result :: {}", e),
+                            };
+                            // TODO: add event id + keyword id relationship
+                            /*
+                            ids.iter().for_each(|id| {
+                                log::debug!(
+                                    "Adding new event (keywords \"{}\" found at {})",
+                                    keywords.get(id).unwrap(),
+                                    result.source
+                                );
+                            });
+                            */
+                        }
                     }
                 }
             }
