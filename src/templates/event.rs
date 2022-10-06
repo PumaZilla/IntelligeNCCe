@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 #[derive(Debug, Clone)]
 pub struct Event {
     pub template: String,
@@ -40,9 +42,10 @@ impl Event {
 
     pub fn into_model(self) -> crate::database::models::event::NewModel {
         log::trace!("converting event into model...");
+        use crate::database::models::event::Type;
         crate::database::models::event::NewModel {
             template: self.template,
-            type_: self.type_.to_string(),
+            type_: Type::from_str(&self.type_.to_string()).unwrap_or(Type::default()),
             source: self.source,
             data: self.data,
         }

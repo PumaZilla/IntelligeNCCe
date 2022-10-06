@@ -1,4 +1,4 @@
--- Entities
+-- Keywords
 
 CREATE TABLE IF NOT EXISTS "keyword" (
   "id"              SERIAL PRIMARY KEY,
@@ -10,10 +10,14 @@ CREATE TABLE IF NOT EXISTS "keyword" (
   CONSTRAINT "keyword_uk_link" UNIQUE ("value")
 );
 
+-- Events
+
+CREATE TYPE "ETYPE" AS ENUM ('paste'); 
+
 CREATE TABLE IF NOT EXISTS "event" (
   "id"              SERIAL,
   "template"        VARCHAR(255) NOT NULL DEFAULT '::unknown',
-  "type"            VARCHAR(100) NOT NULL DEFAULT 'source',
+  "type"            "ETYPE" NOT NULL DEFAULT 'paste',
   "source"          TEXT NOT NULL,
   "data"            TEXT NOT NULL,
   "created_at"      TIMESTAMP NOT NULL DEFAULT NOW(),

@@ -16,6 +16,7 @@ pub enum Error {
     TemplateParseError(String, String),
     WebBindError(String),
     WebRuntimeError(String),
+    GenericError(String),
 }
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -51,6 +52,8 @@ impl std::fmt::Display for Error {
             }
             Self::WebBindError(addr) => write!(f, "failed to bind web server to {}", addr),
             Self::WebRuntimeError(err) => write!(f, "web server runtime error: {}", err),
+        
+            Self::GenericError(err) => write!(f, "{}", err),
         }
     }
 }
