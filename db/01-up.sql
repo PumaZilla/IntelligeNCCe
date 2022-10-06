@@ -12,12 +12,12 @@ CREATE TABLE IF NOT EXISTS "keyword" (
 
 -- Events
 
-CREATE TYPE "ETYPE" AS ENUM ('paste'); 
+CREATE TYPE ETYPE AS ENUM ('paste'); 
 
 CREATE TABLE IF NOT EXISTS "event" (
   "id"              SERIAL,
   "template"        VARCHAR(255) NOT NULL DEFAULT '::unknown',
-  "type"            "ETYPE" NOT NULL DEFAULT 'paste',
+  "type"            ETYPE NOT NULL DEFAULT 'paste',
   "source"          TEXT NOT NULL,
   "data"            TEXT NOT NULL,
   "created_at"      TIMESTAMP NOT NULL DEFAULT NOW(),

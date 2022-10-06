@@ -8,13 +8,15 @@ export default {
 	data() {
 		return {
 			events: [],
+			eventKeys: ['id', 'timestamp', 'template', 'type', 'source', 'data'],
 			keywords: [],
+			keywordKeys: ['id', 'timestamp', 'lastConsulted', 'type', 'value'],
 			rendered: true,
 		}
 	},
 	mounted() {
-		let sortmode = (a,b) => b.id - a.id;
-		queryDB('query{keyword{id,type,value}event{id,timestamp:createdAt,template,type,source,data}}',
+		let sortmode = (a, b) => b.id - a.id;
+		queryDB('query{keyword{id,timestamp:createdAt,type,value,lastConsulted}event{id,timestamp:createdAt,template,type,source,data}}',
 			(data) => {
 				this.events = data.event.sort(sortmode);
 				this.keywords = data.keyword.sort(sortmode);
@@ -24,15 +26,12 @@ export default {
 		truncate(element) {
 			if (typeof element !== 'string') return element;
 
-			let n = 100;
+			let n = 120;
 			return element.substr(0, n - 1) + (element.length > n ? '...' : '')
 		},
 		timestamp(element) {
 			let d = new Date(element * 1000);
 			return `${d.toLocaleString('es-ES')}`;
-		},
-		getKeys(elements) {
-			return [...new Set(elements.map(k => Object.keys(k)).flat())];
 		},
 		getTypes(elements) {
 			return [...new Set(elements.map(k => k.type))];
@@ -50,8 +49,10 @@ export default {
 			</div>
 			<!-- Action -->
 			<div class="ms-auto">
-				<a href="#" data-bs-toggle="modal" class="btn btn-outline-theme"><i class="fa fa-download me-1"></i>
-					Export</a>
+				<a href="#" data-bs-toggle="modal" class="btn btn-outline-theme">
+					<i class="fa fa-download me-1"></i>
+					Export
+				</a>
 			</div>
 		</div>
 		<!-- Subheader -->
@@ -77,7 +78,7 @@ export default {
 				{{ keywords.filter(k => k.type === 'credential').length }} credential(s)
 			</div>
 		</div>
-		<!-- Events -->
+		<!-- Display table -->
 		<card>
 			<!-- Event type selector -->
 			<ul class="nav nav-tabs nav-tabs-v2 px-4">
@@ -96,8 +97,8 @@ export default {
 							<div class="input-group">
 								<input type="text" class="form-control px-35px" placeholder="Search event..." />
 								<div class="input-group-text position-absolute top-0 bottom-0 bg-none border-0 start-0"
-									style="z-index">
-									<i class=" fa fa-search opacity-5"></i>
+									style="z-index:1">
+									<i class="fa fa-search opacity-5"></i>
 								</div>
 							</div>
 						</div>
@@ -120,7 +121,7 @@ export default {
 							<thead class="table-dark">
 								<tr>
 									<th class="border-top-0 pt-2 pb-2 align-middle"></th>
-									<th class="border-top-0 pt-2 pb-2 align-middle text-center" v-for="k in getKeys(events)">
+									<th class="border-top-0 pt-2 pb-2 align-middle text-center" v-for="k in eventKeys">
 										{{ k.charAt(0).toUpperCase() + k.slice(1) }}
 									</th>
 								</tr>
@@ -128,30 +129,100 @@ export default {
 							<tbody>
 								<tr v-for="event in events">
 									<!-- Checkbox -->
-									<td class="w-10px align-middle">
+									<td class="align-middle action">
 										<div class="form-check">
 											<input type="checkbox" class="form-check-input" :id="'event#' + event.id">
 											<label class="form-check-label" :for="'event#' + event.id"></label>
 										</div>
 									</td>
-									<td class="align-middle text-center" v-for="k in getKeys(events)">
+									<td class="align-middle text-center" v-for="k in eventKeys">
 										<RouterLink to="#unimplemented" v-if="k === 'id'">
 											#{{ event[k] }}
 										</RouterLink>
 										<span v-else-if="k === 'timestamp'">
 											{{ timestamp(event[k]) }}
 										</span>
-										<span v-else-if="k === 'template'" class="badge border border-secondary text-secondary px-2 pt-5px pb-5px rounded fs-12px d-inline-flex align-items-center">
+										<span v-else-if="k === 'template'"
+											class="badge border border-secondary text-secondary px-2 pt-5px pb-5px rounded fs-12px d-inline-flex align-items-center">
 											{{ truncate(event[k]) }}
 										</span>
 										<a v-else-if="k === 'source'" :href="event[k]" class="float-start">
 											{{ truncate(event[k]) }}
 										</a>
-										<span v-else-if="k === 'data'" class="float-start">
+										<span v-else class="float-start">
 											{{ truncate(event[k]) }}
 										</span>
-										<span v-else>
-											{{ truncate(event[k]) }}
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<!-- Keywords -->
+				<div class="tab-pane fade show active" id="keywords">
+					<!-- Search bar -->
+					<div class="input-group mb-4">
+						<!-- Input -->
+						<div class="flex-fill position-relative">
+							<div class="input-group">
+								<input type="text" class="form-control px-35px" placeholder="Search keyword..." />
+								<div class="input-group-text position-absolute top-0 bottom-0 bg-none border-0 start-0"
+									style="z-index:1">
+									<i class=" fa fa-search opacity-5"></i>
+								</div>
+							</div>
+						</div>
+						<!-- Action -->
+						<button class="btn btn-outline-default dropdown-toggle rounded-0" type="button"
+							data-bs-toggle="dropdown">
+							<span class="d-none d-md-inline">Filter by type</span>
+							<span class="d-inline d-md-none">
+								<i class="fa fa-filter"></i>
+							</span>
+							&nbsp;
+						</button>
+						<div class="dropdown-menu">
+							<a class="dropdown-item" href="#" v-for="t in getTypes(keywords)">{{ t }}</a>
+						</div>
+					</div>
+					<!-- Keyword list -->
+					<div class="table-responsive">
+						<table class="table table-hover text-nowrap">
+							<thead class="table-dark">
+								<tr>
+									<th class="border-top-0 pt-2 pb-2 align-middle"></th>
+									<th class="border-top-0 pt-2 pb-2 align-middle text-center"
+										v-for="k in keywordKeys">
+										{{ k.charAt(0).toUpperCase() + k.slice(1) }}
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="keyword in keywords">
+									<!-- Checkbox -->
+									<td class="align-middle action">
+										<div class="form-check">
+											<input type="checkbox" class="form-check-input"
+												:id="'keyword#' + keyword.id">
+											<label class="form-check-label" :for="'keyword#' + keyword.id"></label>
+										</div>
+									</td>
+									<td class="align-middle text-center" v-for="k in keywordKeys">
+										<RouterLink to="#unimplemented" v-if="k === 'id'">
+											#{{ keyword[k] }}
+										</RouterLink>
+										<span v-else-if="k === 'timestamp' || k === 'lastConsulted'">
+											{{ timestamp(keyword[k]) }}
+										</span>
+										<span v-else-if="k === 'type'"
+											class="badge border border-secondary text-secondary px-2 pt-5px pb-5px rounded fs-12px d-inline-flex align-items-center">
+											{{ truncate(keyword[k]) }}
+										</span>
+										<a v-else-if="k === 'source'" :href="keyword[k]" class="float-start">
+											{{ truncate(keyword[k]) }}
+										</a>
+										<span v-else class="float-start">
+											{{ truncate(keyword[k]) }}
 										</span>
 									</td>
 								</tr>
@@ -163,3 +234,8 @@ export default {
 		</card>
 	</div>
 </template>
+<style>
+th:last-child {
+	width: 50%
+}
+</style>
