@@ -23,9 +23,9 @@ impl std::fmt::Display for TemplateAction {
 impl TemplateAction {
     pub async fn run(
         &self,
-        context: Option<super::data::Data>,
+        context: Option<super::event::Event>,
         options: Option<std::collections::HashMap<String, String>>,
-    ) -> (Vec<super::data::Data>, Vec<super::data::Data>) {
+    ) -> (Vec<super::event::Event>, Vec<super::event::Event>) {
         match self.execute(context, options).await {
             Ok((context, content)) => (context, content),
             Err(err) => {
@@ -37,9 +37,9 @@ impl TemplateAction {
 
     async fn execute(
         &self,
-        context: Option<super::data::Data>,
+        context: Option<super::event::Event>,
         options: Option<std::collections::HashMap<String, String>>,
-    ) -> Result<(Vec<super::data::Data>, Vec<super::data::Data>)> {
+    ) -> Result<(Vec<super::event::Event>, Vec<super::event::Event>)> {
         Ok(match self {
             Self::Debug => {
                 let ctx = context.ok_or(Error::TemplateActionNoContextError(self.to_string()))?;
@@ -83,7 +83,7 @@ impl TemplateAction {
                 let mut content = Vec::new();
                 re.captures_iter(&context.data).for_each(|capture| {
                     if capture.len() > group {
-                        content.push(super::data::Data::data_from(
+                        content.push(super::event::Event::data_from(
                             context.clone(),
                             &capture[group],
                         ));
@@ -170,7 +170,7 @@ impl TemplateAction {
 
                 // return the request
                 (
-                    vec![super::data::Data::from(
+                    vec![super::event::Event::from(
                         context.clone().unwrap_or_default(),
                         &url,
                         &res,

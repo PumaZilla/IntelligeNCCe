@@ -54,6 +54,15 @@ query KeywordR {
     lastConsulted
   }
 }
+mutation KeywordU {
+  updateKeyword {
+    id
+    type
+    value
+    createdAt
+    lastConsulted
+  }
+}
 mutation KeywordD {
   deleteKeyword(id: 1) {
     id

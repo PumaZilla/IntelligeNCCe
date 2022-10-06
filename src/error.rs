@@ -19,20 +19,20 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Self::DatabaseConnectionError(addr) => {
-                write!(f, "Unable to connect to database: {}", addr)
+                write!(f, "unable to connect to database at {}", addr)
             }
-            Self::IODirectoryError(dir) => write!(f, "Unable to read directory {}", dir),
-            Self::IOReadError(file) => write!(f, "Unable to read file {}", file),
-            Self::IOPathError(path) => write!(f, "Unable to access {}", path),
-            Self::LoggerError(err) => write!(f, "Unable to initialize logger: {}", err),
-            Self::TemplateActionExecError(action, err) => write!(f, "Error running {}: {}", action, err),
-            Self::TemplateActionNoContextError(action) => write!(f, "No context provided while {}", action),
-            Self::TemplateActionNoOptionError(action,option) => write!(f, "No '{}' provided while {}", option, action),
-            Self::TemplateActionNoOptionsError(action) => write!(f, "No options provided while {}", action),
-            Self::TemplateDuplicatedError(name) => write!(f, "Template {} already exists", name),
-            Self::TemplateParseError(file, err) => write!(f, "Unable to parse template {}: {}", file, err),
-            Self::WebBindError(addr) => write!(f, "Failed to bind web server to {}", addr),
-            Self::WebRuntimeError(err) => write!(f, "Web server runtime error: {}", err),
+            Self::IODirectoryError(dir) => write!(f, "unable to read directory {}", dir),
+            Self::IOReadError(file) => write!(f, "unable to read file {}", file),
+            Self::IOPathError(path) => write!(f, "unable to access {}", path),
+            Self::LoggerError(err) => write!(f, "unable to initialize logger: {}", err),
+            Self::TemplateActionExecError(action, err) => write!(f, "rrror running {}: {}", action, err),
+            Self::TemplateActionNoContextError(action) => write!(f, "no context provided while {}", action),
+            Self::TemplateActionNoOptionError(action,option) => write!(f, "no '{}' provided while {}", option, action),
+            Self::TemplateActionNoOptionsError(action) => write!(f, "no options provided while {}", action),
+            Self::TemplateDuplicatedError(name) => write!(f, "template {} already exists", name),
+            Self::TemplateParseError(file, err) => write!(f, "unable to parse template {}: {}", file, err),
+            Self::WebBindError(addr) => write!(f, "failed to bind web server to {}", addr),
+            Self::WebRuntimeError(err) => write!(f, "web server runtime error: {}", err),
         }
     }
 }

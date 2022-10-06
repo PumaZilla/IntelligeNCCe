@@ -25,6 +25,7 @@ pub struct Model {
 }
 impl Model {
     pub async fn read(ctx: &crate::database::graphql::Context) -> juniper::FieldResult<Vec<Self>> {
+        // access the database
         use diesel::RunQueryDsl;
         let mut client = ctx.pool.get()?;
         Ok(crate::database::schema::event::dsl::event.load::<Self>(&mut client)?)
@@ -62,13 +63,13 @@ impl NewModel {
         &self,
         pool: &crate::database::Connection,
     ) -> Result<Model,Box<dyn std::error::Error>> {
+        // save it into the database
         use diesel::RunQueryDsl;
         let mut client = pool.get()?;
-        Ok(
-            diesel::insert_into(crate::database::schema::event::dsl::event)
+        let model: Model = diesel::insert_into(crate::database::schema::event::dsl::event)
                 .values(self)
-                .get_result(&mut client)?,
-        )
+                .get_result(&mut client)?;
+        Ok(model)
     }
 
     pub async fn create(

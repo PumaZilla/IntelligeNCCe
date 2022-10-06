@@ -1,23 +1,23 @@
 #[derive(Debug, Clone)]
-pub struct Data {
+pub struct Event {
     pub template: String,
-    pub type_: DataType,
+    pub type_: EventType,
     pub source: String,
     pub data: String,
 }
-impl Default for Data {
+impl Default for Event {
     fn default() -> Self {
         Self {
             template: "-- Unknown template".to_string(),
-            type_: DataType::Source,
+            type_: EventType::Raw,
             source: "-- Unknown source".to_string(),
             data: "-- No data".to_string(),
         }
     }
 }
-impl Data {
+impl Event {
     pub fn from(prev: Self, source: &str, data: &str) -> Self {
-        log::trace!("updating data from {} (prev: {})", source, prev.source);
+        log::trace!("updating event from {} (prev: {})", source, prev.source);
         Self {
             template: prev.template,
             type_: prev.type_,
@@ -39,7 +39,7 @@ impl Data {
     }
 
     pub fn into_model(self) -> crate::database::models::event::NewModel {
-        log::trace!("converting data into model...");
+        log::trace!("converting event into model...");
         crate::database::models::event::NewModel {
             template: self.template,
             type_: self.type_.to_string(),
@@ -47,29 +47,33 @@ impl Data {
             data: self.data,
         }
     }
+
+    pub fn check(&self) {
+        unimplemented!()
+    }
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum DataType {
+pub enum EventType {
     Domain,
     Email,
-    Source,
+    Raw,
 }
-impl DataType {
+impl EventType {
     pub fn _iter() -> std::slice::Iter<'static, Self> {
-        static TYPES: [DataType; 3] = [DataType::Domain,DataType::Email,DataType::Source];
+        static TYPES: [EventType; 3] = [EventType::Domain,EventType::Email,EventType::Raw];
         TYPES.iter()
     }
 }
-impl std::fmt::Display for DataType {
+impl std::fmt::Display for EventType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            DataType::Domain => write!(f, "domain"),
-            DataType::Email => write!(f, "email"),
-            DataType::Source => write!(f, "source"),
+            EventType::Domain => write!(f, "domain"),
+            EventType::Email => write!(f, "email"),
+            EventType::Raw => write!(f, "raw"),
         }
     }
 }

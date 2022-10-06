@@ -19,8 +19,8 @@ impl std::fmt::Display for TemplateStep {
 impl TemplateStep {
     pub async fn run(
         &self,
-        context: Option<super::data::Data>,
-    ) -> (Vec<super::data::Data>, Vec<super::data::Data>) {
+        context: Option<super::event::Event>,
+    ) -> (Vec<super::event::Event>, Vec<super::event::Event>) {
         let ctx = context.clone();
         let opts = self.replace_variables(ctx);
         log::debug!("{}", self);
@@ -29,8 +29,8 @@ impl TemplateStep {
 
     pub async fn run_multiple(
         &self,
-        context: Option<Vec<super::data::Data>>,
-    ) -> (Vec<super::data::Data>, Vec<super::data::Data>) {
+        context: Option<Vec<super::event::Event>>,
+    ) -> (Vec<super::event::Event>, Vec<super::event::Event>) {
         match context {
             Some(context) => {
                 let mut new_context = Vec::new();
@@ -48,7 +48,7 @@ impl TemplateStep {
 
     fn replace_variables(
         &self,
-        context: Option<super::data::Data>,
+        context: Option<super::event::Event>,
     ) -> Option<std::collections::HashMap<String, String>> {
         let re = regex::Regex::new(r"\{\s*(\$?[a-zA-Z0-9_]+)\s*\}").unwrap();
         self.options.clone().and_then(|options| {

@@ -28,6 +28,18 @@ impl Model {
         Ok(crate::database::schema::keyword::table.load::<Self>(&mut client)?)
     }
 
+    pub async fn update(
+        ctx: &crate::database::graphql::Context,
+    ) -> juniper::FieldResult<Vec<Self>> {
+        use diesel::{ExpressionMethods, RunQueryDsl};
+        let mut client = ctx.pool.get()?;
+        Ok(diesel::update(crate::database::schema::keyword::table)
+            .set(
+                crate::database::schema::keyword::last_consulted.eq(chrono::Utc::now().naive_utc()),
+            )
+            .get_results(&mut client)?)
+    }
+
     pub async fn delete(
         ctx: &crate::database::graphql::Context,
         id: i32,

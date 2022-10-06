@@ -66,6 +66,12 @@ impl Mutation {
         log::trace!("graphql mutation received: createKeyword");
         keyword.create(ctx).await
     }
+    pub async fn update_keyword(
+        ctx: &Context,
+    ) -> juniper::FieldResult<Vec<super::models::keyword::Model>> {
+        log::trace!("graphql mutation received: updateKeyword");
+        super::models::keyword::Model::update(ctx).await
+    }
     pub async fn delete_keyword(
         ctx: &Context,
         id: i32,

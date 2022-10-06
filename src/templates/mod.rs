@@ -1,5 +1,5 @@
 mod action;
-mod data;
+mod event;
 mod step;
 
 use crate::error::{Error, Result};
@@ -84,7 +84,7 @@ impl Template {
         loop {
             // run the watcher
             log::debug!("executing template {}", self.id);
-            let results: Vec<data::Data> = self
+            let results: Vec<event::Event> = self
                 .execute()
                 .await
                 .iter()
@@ -129,9 +129,9 @@ impl Template {
         }
     }
 
-    async fn execute(&self) -> Vec<data::Data> {
-        let mut contents: Vec<data::Data> = Vec::new();
-        let mut contexts: std::collections::HashMap<String, Option<Vec<data::Data>>> =
+    async fn execute(&self) -> Vec<event::Event> {
+        let mut contents: Vec<event::Event> = Vec::new();
+        let mut contexts: std::collections::HashMap<String, Option<Vec<event::Event>>> =
             std::collections::HashMap::new();
         contexts.insert(DEFAULT_KEY.to_string(), None);
         // run each step

@@ -9,7 +9,7 @@ services:
     ports: ["${POSTGRES_PORT:-5432}:5432"]
     volumes:
       - db:/var/lib/postgresql/data:rw
-      - ./intelligencce-server/db:/docker-entrypoint-initdb.d:ro
+      - ./db/01-up.sql:/docker-entrypoint-initdb.d/schema.sql:ro
     environment:
       POSTGRES_USER:      ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD:  ${POSTGRES_PASS:-postgres}
