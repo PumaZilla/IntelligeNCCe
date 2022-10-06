@@ -1,21 +1,21 @@
 ---
-id: pastebin.com
+id: kpaste
 meta:
-  name: Pastebin watcher
+  name: KPaste watcher
   description: |
-    Monitorize Pastebin (pastebin.com) for new pastes.
-every: 6h
+    Monitorize KPaste (kpaste.net) for new pastes.
+every: 1d
 steps:
   - name: getting recent pastes...
     action: fetch
     options:
-      url: https://pastebin.com/archive
+      url: https://kpaste.net/
   - name: extracting ids from hrefs
     action: extract
     options:
-      query: -public"></span><a href="/([a-zA-Z0-9]+?)"
+      query: href="/([a-f0-9]+?)"
       group: 1
   - name: fetching the raw paste
     action: fetch
     options:
-      url: https://pastebin.com/raw/{content}
+      url: https://kpaste.net/{content}?raw
