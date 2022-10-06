@@ -1,3 +1,5 @@
+use diesel::QueryDsl;
+
 use crate::error::{Error, Result};
 
 #[derive(
@@ -32,6 +34,14 @@ impl Model {
         Ok(Self::all(&ctx.pool).await?)
     }
 
+    pub async fn read_by_type(ctx: &crate::database::graphql::Context, type_: &str) -> juniper::FieldResult<Vec<Self>> {
+        use diesel::{ExpressionMethods,RunQueryDsl};
+        let mut client = ctx.pool.get()?;
+        Ok(crate::database::schema::keyword::table
+            .filter(crate::database::schema::keyword::columns::type_.eq(type_))
+            .load::<Model>(&mut client)?)
+    }
+
     pub async fn update(
         ctx: &crate::database::graphql::Context,
     ) -> juniper::FieldResult<Vec<Self>> {
@@ -48,7 +58,7 @@ impl Model {
         ctx: &crate::database::graphql::Context,
         id: i32,
     ) -> juniper::FieldResult<Model> {
-        use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+        use diesel::{ExpressionMethods, RunQueryDsl};
         let mut client = ctx.pool.get()?;
         Ok(diesel::delete(
             crate::database::schema::keyword::table
