@@ -1,7 +1,24 @@
+#[derive(rust_embed::RustEmbed)]
+#[folder = "www/dist/"]
+struct Assets;
+impl Assets {
+    fn handle(path: &str) -> actix_web::HttpResponse {
+        match Assets::get(path) {
+            Some(content) => actix_web::HttpResponse::Ok()
+                .content_type(mime_guess::from_path(path).first_or_octet_stream().as_ref())
+                .body(content.data.into_owned()),
+            None => actix_web::HttpResponse::NotFound().finish(),
+        }
+    }
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+
 pub fn register(cfg: &mut actix_web::web::ServiceConfig) {
     cfg
         // Common routes
         .service(actix_web::web::resource("/").route(actix_web::web::get().to(index)))
+        .service(actix_web::web::resource("/assets/{_:.*}").route(actix_web::web::get().to(assets)))
         // GraphQL routes
         .service(
             actix_web::web::resource(GRAPHQL_ENDPOINT).route(actix_web::web::post().to(graphql)),
@@ -14,8 +31,12 @@ pub fn register(cfg: &mut actix_web::web::ServiceConfig) {
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
-async fn index() -> impl actix_web::Responder {
-    actix_web::HttpResponse::Ok().body("Hello world!") // FIXME: return a proper index page
+async fn index() -> actix_web::HttpResponse {
+    Assets::handle("index.html")
+}
+
+async fn assets(path: actix_web::web::Path<String>) -> actix_web::HttpResponse {
+    Assets::handle(["assets", path.as_str()].join("/").as_str())
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //

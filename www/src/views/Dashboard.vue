@@ -1,82 +1,165 @@
 <script>
+import queryDB from '@/composables/queryDB';
 import { useAppVariableStore } from '@/stores/app-variable';
-import apexchart from '@/components/plugins/Apexcharts.vue';
 
 const appVariable = useAppVariableStore();
 
 export default {
-	components: {
-		apexchart
-	},
 	data() {
 		return {
+			events: [],
+			keywords: [],
 			rendered: true,
-			stats: this.getStats()
 		}
 	},
+	mounted() {
+		let sortmode = (a,b) => b.id - a.id;
+		queryDB('query{keyword{id,type,value}event{id,timestamp:createdAt,template,type,source,data}}',
+			(data) => {
+				this.events = data.event.sort(sortmode);
+				this.keywords = data.keyword.sort(sortmode);
+			});
+	},
 	methods: {
-		getStats() {
-			return [
-				{
-					title: 'INVESTIGATIONS', total: '4.2m',
-					info: [{ icon: 'fa fa-chevron-up fa-fw me-1', text: '33.3% more than last week' }, { icon: 'far fa-user fa-fw me-1', text: '45.5% new visitors' }, { icon: 'far fa-times-circle fa-fw me-1', text: '3.25% bounce rate' }],
-					chart: {
-						height: 30,
-						options: { chart: { type: 'bar', sparkline: { enabled: true } }, colors: [appVariable.color.theme], plotOptions: { bar: { horizontal: false, columnWidth: '65%', endingShape: 'rounded' } } },
-						series: [{ name: 'Visitors', data: [this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo()] }]
-					}
-				},
-				{
-					title: 'EVENTS', total: '$35.2K',
-					info: [{ icon: 'fa fa-chevron-up fa-fw me-1', text: '20.4% more than last week' }, { icon: 'fa fa-shopping-bag fa-fw me-1', text: '33.5% new orders' }, { icon: 'fa fa-dollar-sign fa-fw me-1', text: '6.21% conversion rate' }],
-					chart: {
-						height: 30,
-						options: { chart: { type: 'line', sparkline: { enabled: true } }, colors: [appVariable.color.theme], stroke: { curve: 'straight', width: 2 } },
-						series: [{ name: 'Visitors', data: [this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo(), this.randomNo()] }]
-					}
-				}
-			]
-		},
+		truncate(element) {
+			if (typeof element !== 'string') return element;
 
-		randomNo() {
-			return Math.floor(Math.random() * 60) + 30
+			let n = 100;
+			return element.substr(0, n - 1) + (element.length > n ? '...' : '')
+		},
+		timestamp(element) {
+			let d = new Date(element * 1000);
+			return `${d.toLocaleString('es-ES')}`;
+		},
+		getKeys(elements) {
+			return [...new Set(elements.map(k => Object.keys(k)).flat())];
+		},
+		getTypes(elements) {
+			return [...new Set(elements.map(k => k.type))];
 		},
 	}
 }
 </script>
 <template>
 	<div class="row" v-if="rendered">
-		<!-- BEGIN stats -->
-		<div class="col-xl-3 col-lg-6" v-for="stat in stats">
-			<!-- BEGIN card -->
-			<card class="mb-3">
-				<card-body>
-					<div class="d-flex fw-bold small mb-3">
-						<span class="flex-grow-1">{{ stat.title }}</span>
-						<card-expand-toggler />
-					</div>
-					<div class="row align-items-center mb-2">
-						<div class="col-7">
-							<h3 class="mb-0">{{ stat.total }}</h3>
-						</div>
-						<div class="col-5">
-							<div class="mt-n3 mb-n2">
-								<apexchart :height="stat.chart.height" :options="stat.chart.options"
-									:series="stat.chart.series"></apexchart>
-							</div>
-						</div>
-					</div>
-					<div class="small text-white text-opacity-50 text-truncate">
-						<template v-for="statInfo in stat.info">
-							<div>
-								<i v-bind:class="statInfo.icon"></i> {{ statInfo.text }}
-							</div>
-						</template>
-					</div>
-				</card-body>
-			</card>
-			<!-- END card -->
+		<!-- Header -->
+		<div class="d-flex align-items-center mb-md-3 mb-2">
+			<!-- Title -->
+			<div class="flex-fill">
+				<h1 class="page-header mb-0">Dashboard</h1>
+			</div>
+			<!-- Action -->
+			<div class="ms-auto">
+				<a href="#" data-bs-toggle="modal" class="btn btn-outline-theme"><i class="fa fa-download me-1"></i>
+					Export</a>
+			</div>
 		</div>
-		<!-- END stats -->
+		<!-- Subheader -->
+		<div class="mb-md-4 mb-3 d-md-flex">
+			<div class="ms-md-0 mt-md-0 mt-2">
+				<i class="fa fa-key fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'text').length }} keyword(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-globe fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'domain').length }} domain(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-server fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'ip').length }} IP(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-envelope fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'email').length }} email(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-lock fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'credential').length }} credential(s)
+			</div>
+		</div>
+		<!-- Events -->
+		<card>
+			<!-- Event type selector -->
+			<ul class="nav nav-tabs nav-tabs-v2 px-4">
+				<li class="nav-item me-3"><a href="#events" class="nav-link active px-2" data-bs-toggle="tab">Events</a>
+				</li>
+				<li class="nav-item me-3"><a href="#keywords" class="nav-link px-2" data-bs-toggle="tab">Keywords</a>
+				</li>
+			</ul>
+			<div class="tab-content p-4">
+				<!-- Events -->
+				<div class="tab-pane fade show active" id="events">
+					<!-- Search bar -->
+					<div class="input-group mb-4">
+						<!-- Input -->
+						<div class="flex-fill position-relative">
+							<div class="input-group">
+								<input type="text" class="form-control px-35px" placeholder="Search event..." />
+								<div class="input-group-text position-absolute top-0 bottom-0 bg-none border-0 start-0"
+									style="z-index">
+									<i class=" fa fa-search opacity-5"></i>
+								</div>
+							</div>
+						</div>
+						<!-- Action -->
+						<button class="btn btn-outline-default dropdown-toggle rounded-0" type="button"
+							data-bs-toggle="dropdown">
+							<span class="d-none d-md-inline">Filter by type</span>
+							<span class="d-inline d-md-none">
+								<i class="fa fa-filter"></i>
+							</span>
+							&nbsp;
+						</button>
+						<div class="dropdown-menu">
+							<a class="dropdown-item" href="#" v-for="t in getTypes(events)">{{ t }}</a>
+						</div>
+					</div>
+					<!-- Event list -->
+					<div class="table-responsive">
+						<table class="table table-hover text-nowrap">
+							<thead class="table-dark">
+								<tr>
+									<th class="border-top-0 pt-2 pb-2 align-middle"></th>
+									<th class="border-top-0 pt-2 pb-2 align-middle text-center" v-for="k in getKeys(events)">
+										{{ k.charAt(0).toUpperCase() + k.slice(1) }}
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr v-for="event in events">
+									<!-- Checkbox -->
+									<td class="w-10px align-middle">
+										<div class="form-check">
+											<input type="checkbox" class="form-check-input" :id="'event#' + event.id">
+											<label class="form-check-label" :for="'event#' + event.id"></label>
+										</div>
+									</td>
+									<td class="align-middle text-center" v-for="k in getKeys(events)">
+										<RouterLink to="#unimplemented" v-if="k === 'id'">
+											#{{ event[k] }}
+										</RouterLink>
+										<span v-else-if="k === 'timestamp'">
+											{{ timestamp(event[k]) }}
+										</span>
+										<span v-else-if="k === 'template'" class="badge border border-secondary text-secondary px-2 pt-5px pb-5px rounded fs-12px d-inline-flex align-items-center">
+											{{ truncate(event[k]) }}
+										</span>
+										<a v-else-if="k === 'source'" :href="event[k]" class="float-start">
+											{{ truncate(event[k]) }}
+										</a>
+										<span v-else-if="k === 'data'" class="float-start">
+											{{ truncate(event[k]) }}
+										</span>
+										<span v-else>
+											{{ truncate(event[k]) }}
+										</span>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</card>
 	</div>
 </template>

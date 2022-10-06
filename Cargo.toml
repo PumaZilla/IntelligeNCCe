@@ -17,9 +17,11 @@ humantime = { version = "2.1.0" }                                       # Human-
 juniper = { version = "0.15.10" }                                       # GraphQL server
 log = { version = "0.4.17" }                                            # Logging
 log4rs = { version = "1.1.1" }                                          # Logging wrapper
+mime_guess = { version = "2.0.4" }                                      # Mime types
 redis = { version = "0.21.6", features = ["tokio-comp"] }               # Redis client
 regex = { version = "1.6.0" }                                           # Regular expressions
 reqwest = { version = "0.11.11", features = ["blocking"] }              # HTTP requests
+rust-embed = { version = "6.4.1" }                                      # Embed static files
 serde = { version = "1.0.145", features = ["derive"] }                  # (De)serializer
 serde_json = { version = "1.0.85" }                                     # JSON (de)serialization
 serde_yaml = { version = "0.9.10" }                                     # YAML (de)serialization
