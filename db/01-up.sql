@@ -1,8 +1,10 @@
 -- Keywords
 
+CREATE TYPE KTYPE AS ENUM ('text','credential','domain','email','ip','phone','url','username'); 
+
 CREATE TABLE IF NOT EXISTS "keyword" (
   "id"              SERIAL PRIMARY KEY,
-  "type"            VARCHAR(255) NOT NULL,
+  "type"            KTYPE NOT NULL DEFAULT 'text',
   "value"           VARCHAR(255) NOT NULL,
   "created_at"      TIMESTAMP NOT NULL DEFAULT NOW(),
   "last_consulted"  TIMESTAMP NOT NULL DEFAULT NOW(),

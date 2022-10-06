@@ -6,7 +6,7 @@ query Builtins {
 }
 
 mutation EventC {
-  createEvent(event: {template: "playground", type: "paste", source: "https://kike.wtf/", data: "Cupcake ipsum dolor sit amet croissant bonbon. I love wafer jelly jelly beans I love. Pudding biscuit chocolate cake gingerbread lollipop jelly-o jelly-o. Gummies croissant tiramisu halvah toffee caramels. Cake danish toffee macaroon chocolate dessert chocolate cake cotton candy. Dragée chocolate cake jelly-o cookie apple pie liquorice liquorice. Liquorice chupa chups I love dessert cake I love apple pie ice cream."}) {
+  domain: createEvent(event: {template: "playground", type: PASTE, source: "https://kike.wtf/", data: "Cupcake ipsum dolor sit amet croissant bonbon. I love wafer jelly jelly beans I love. Pudding biscuit chocolate cake gingerbread lollipop jelly-o jelly-o. Gummies croissant tiramisu halvah toffee caramels. Cake danish toffee macaroon chocolate dessert chocolate cake cotton candy. Dragée chocolate cake jelly-o cookie apple pie liquorice liquorice. Liquorice chupa chups I love dessert cake I love apple pie ice cream."}) {
     id
     template
     type
@@ -22,7 +22,7 @@ query EventR {
     type
     source
     data
-    createdAt
+    timestamp: createdAt
   }
 }
 mutation EventD {
@@ -37,7 +37,14 @@ mutation EventD {
 }
 
 mutation KeywordC {
-  createKeyword(keyword: {type: "domain", value: "kike.wtf"}) {
+  text:createKeyword(keyword: {type: TEXT, value: "example"}) {
+    id
+    type
+    value
+    createdAt
+    lastConsulted
+  }
+  domain: createKeyword(keyword: {type: DOMAIN, value: "example.com"}) {
     id
     type
     value

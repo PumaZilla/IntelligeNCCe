@@ -37,13 +37,6 @@ impl Query {
         log::trace!("graphql query received: keyword");
         super::models::keyword::Model::read(ctx).await
     }
-    pub async fn keyword_by_type(
-        ctx: &Context,
-        type_: String,
-    ) -> juniper::FieldResult<Vec<super::models::keyword::Model>> {
-        log::trace!("graphql query received: keywordByType");
-        super::models::keyword::Model::read_by_type(ctx,&type_).await
-    }
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //

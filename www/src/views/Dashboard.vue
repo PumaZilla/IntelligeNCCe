@@ -59,23 +59,35 @@ export default {
 		<div class="mb-md-4 mb-3 d-md-flex">
 			<div class="ms-md-0 mt-md-0 mt-2">
 				<i class="fa fa-key fa-fw fa-lg me-1 text-theme"></i>
-				{{ keywords.filter(k => k.type === 'text').length }} keyword(s)
-			</div>
-			<div class="ms-md-4 mt-md-0 mt-2">
-				<i class="fa fa-globe fa-fw fa-lg me-1 text-theme"></i>
-				{{ keywords.filter(k => k.type === 'domain').length }} domain(s)
-			</div>
-			<div class="ms-md-4 mt-md-0 mt-2">
-				<i class="fa fa-server fa-fw fa-lg me-1 text-theme"></i>
-				{{ keywords.filter(k => k.type === 'ip').length }} IP(s)
-			</div>
-			<div class="ms-md-4 mt-md-0 mt-2">
-				<i class="fa fa-envelope fa-fw fa-lg me-1 text-theme"></i>
-				{{ keywords.filter(k => k.type === 'email').length }} email(s)
+				{{ keywords.filter(k => k.type === 'TEXT').length }} keyword(s)
 			</div>
 			<div class="ms-md-4 mt-md-0 mt-2">
 				<i class="fa fa-lock fa-fw fa-lg me-1 text-theme"></i>
-				{{ keywords.filter(k => k.type === 'credential').length }} credential(s)
+				{{ keywords.filter(k => k.type === 'CREDENTIAL').length }} credential(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-globe fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'DOMAIN').length }} domain(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-envelope fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'EMAIL').length }} email(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-server fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'IP').length }} IP(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-phone fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'PHONE').length }} phone(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-link fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'URL').length }} URL(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-user fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'USERNAME').length }} username(s)
 			</div>
 		</div>
 		<!-- Display table -->
@@ -159,7 +171,7 @@ export default {
 					</div>
 				</div>
 				<!-- Keywords -->
-				<div class="tab-pane fade show active" id="keywords">
+				<div class="tab-pane fade" id="keywords">
 					<!-- Search bar -->
 					<div class="input-group mb-4">
 						<!-- Input -->

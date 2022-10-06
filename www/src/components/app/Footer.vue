@@ -10,7 +10,7 @@ export default {
 <template>
 	<!-- BEGIN #footer -->
 	<div id="footer" class="app-footer">
-		&copy; {{ year }} seanTheme All Right Reserved
+		&copy; {{ year }} Kike Fontan. All Right Reserved
 	</div>
 	<!-- END #footer -->
 </template>

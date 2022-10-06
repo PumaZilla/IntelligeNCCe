@@ -2,6 +2,10 @@ pub mod sql_types {
     #[derive(diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "etype"))]
     pub struct Etype;
+
+    #[derive(diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "ktype"))]
+    pub struct Ktype;
 }
 
 diesel::table! {
@@ -20,10 +24,13 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::Ktype;
+
     keyword (id) {
         id -> Int4,
         #[sql_name = "type"]
-        type_ -> Varchar,
+        type_ -> Ktype,
         value -> Varchar,
         created_at -> Timestamp,
         last_consulted -> Timestamp,
