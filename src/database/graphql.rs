@@ -30,6 +30,10 @@ impl Query {
         log::trace!("graphql query received: event");
         super::models::event::Model::read(ctx).await
     }
+    pub async fn event_by_type(ctx: &Context, type_: super::models::event::Type) -> juniper::FieldResult<Vec<super::models::event::Model>> {
+        log::trace!("graphql query received: eventByType");
+        super::models::event::Model::filter_by_type(ctx, type_).await
+    }
 
     pub async fn keyword(
         ctx: &Context,

@@ -1,3 +1,5 @@
+use diesel::ExpressionMethods;
+
 #[derive(
     Clone,
     Debug,
@@ -31,11 +33,18 @@ impl Model {
         Ok(crate::database::schema::event::dsl::event.load::<Self>(&mut client)?)
     }
 
+    pub async fn filter_by_type(ctx: &crate::database::graphql::Context, type_: Type) -> juniper::FieldResult<Vec<Self>> {
+        // access the database
+        use diesel::{QueryDsl,RunQueryDsl};
+        let mut client = ctx.pool.get()?;
+        Ok(crate::database::schema::event::table.filter(crate::database::schema::event::columns::type_.eq(type_)).load::<Self>(&mut client)?)
+    }
+
     pub async fn delete(
         ctx: &crate::database::graphql::Context,
         id: i32,
     ) -> juniper::FieldResult<Model> {
-        use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+        use diesel::{QueryDsl, RunQueryDsl};
         let mut client = ctx.pool.get()?;
         Ok(diesel::delete(
             crate::database::schema::event::dsl::event
@@ -47,7 +56,7 @@ impl Model {
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
-#[derive(Clone,Debug,Default,PartialEq,serde::Deserialize,juniper::GraphQLEnum,diesel::AsExpression,diesel::FromSqlRow)]
+#[derive(Clone,Debug,Default,Eq,PartialEq,serde::Deserialize,juniper::GraphQLEnum,diesel::AsExpression,diesel::FromSqlRow,diesel::QueryId)]
 #[graphql(name = "EventType")]
 #[diesel(sql_type = crate::database::schema::sql_types::Etype)]
 pub enum Type{

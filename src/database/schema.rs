@@ -1,5 +1,5 @@
 pub mod sql_types {
-    #[derive(diesel::sql_types::SqlType)]
+    #[derive(diesel::sql_types::SqlType,diesel::QueryId)]
     #[diesel(postgres_type(name = "etype"))]
     pub struct Etype;
 
