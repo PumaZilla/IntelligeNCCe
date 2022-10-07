@@ -1,6 +1,6 @@
 mod routes;
 
-pub async fn start(cfg: crate::config::Config, db: std::sync::Arc<crate::database::Connection>) {
+pub async fn start(cfg: crate::config::Config, db: std::sync::Arc<crate::database::DBConnection>) {
     // check if disabled
     if cfg.noserver {
         log::warn!("web server is disabled");

@@ -47,7 +47,7 @@ async fn graphql(
     req: actix_web::HttpRequest,
     gqlreq: actix_web::web::Json<juniper::http::GraphQLRequest>,
     schema: actix_web::web::Data<crate::database::graphql::Schema>,
-    db: actix_web::web::Data<std::sync::Arc<crate::database::Connection>>,
+    db: actix_web::web::Data<std::sync::Arc<crate::database::DBConnection>>,
 ) -> impl actix_web::Responder {
     log::trace!(
         "new graphql request received from {}.",

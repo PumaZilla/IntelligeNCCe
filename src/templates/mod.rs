@@ -34,7 +34,7 @@ impl Templates {
         Ok(self.templates.push(template))
     }
 
-    pub async fn run_all(&self, pool: std::sync::Arc<crate::database::Connection>) {
+    pub async fn run_all(&self, pool: std::sync::Arc<crate::database::DBConnection>) {
         log::debug!("starting {} template(s)...", self.len());
         // start all handlers and wait them to finish
         let mut handles = Vec::new();
@@ -67,7 +67,7 @@ impl Template {
             .map_err(|e| Error::TemplateParseError(template.to_string(), e.to_string()))?)
     }
 
-    pub async fn start(&self, pool: std::sync::Arc<crate::database::Connection>) {
+    pub async fn start(&self, pool: std::sync::Arc<crate::database::DBConnection>) {
         log::debug!(
             "starting template {} (triggered every {})...",
             &self.id,

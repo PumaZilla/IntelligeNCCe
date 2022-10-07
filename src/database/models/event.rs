@@ -106,7 +106,7 @@ pub struct NewModel {
 impl NewModel {
     pub async fn save(
         &self,
-        pool: &crate::database::Connection,
+        pool: &crate::database::DBConnection,
     ) -> std::result::Result<Model, Box<dyn std::error::Error>> {
         // save it into the database
         use diesel::RunQueryDsl;

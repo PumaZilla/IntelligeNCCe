@@ -22,7 +22,7 @@ pub struct Model {
     pub last_consulted: chrono::NaiveDateTime,
 }
 impl Model {
-    pub async fn all(pool: &crate::database::Connection) -> crate::error::Result<Vec<Model>> {
+    pub async fn all(pool: &crate::database::DBConnection) -> crate::error::Result<Vec<Model>> {
         use diesel::RunQueryDsl;
         let mut client = pool
             .get()
@@ -159,7 +159,7 @@ pub struct NewModel {
 impl NewModel {
     pub async fn save(
         &self,
-        pool: &crate::database::Connection,
+        pool: &crate::database::DBConnection,
     ) -> std::result::Result<Model, Box<dyn std::error::Error>> {
         // FIXME: proper error
         use diesel::RunQueryDsl;

@@ -1,6 +1,6 @@
 #[derive(Clone)]
 pub struct Context {
-    pub pool: std::sync::Arc<super::Connection>,
+    pub pool: std::sync::Arc<super::DBConnection>,
 }
 impl juniper::Context for Context {}
 
