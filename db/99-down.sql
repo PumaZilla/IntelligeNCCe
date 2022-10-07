@@ -1,2 +1,3 @@
-DROP TABLE IF EXISTS "event";
-DROP TABLE IF EXISTS "keyword";
+DROP TABLE IF EXISTS "events_keywords";
+DROP TABLE IF EXISTS "keywords";
+DROP TABLE IF EXISTS "events";

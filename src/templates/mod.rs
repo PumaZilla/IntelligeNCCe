@@ -103,7 +103,7 @@ impl Template {
             if results.len() > 0 {
                 // upload the keywords
                 let mut keywords = std::collections::HashMap::<i32, regex::Regex>::new();
-                let db_keywords = crate::database::models::keyword::Model::all(&pool).await;
+                let db_keywords = crate::database::models::Keyword::get_all(&pool);
                 match db_keywords {
                     Ok(db_keywords) => {
                         db_keywords.iter().for_each(|keyword| {
@@ -130,7 +130,7 @@ impl Template {
                         if ids.len() > 0 {
                             // update the result
                             let model = result.into_model();
-                            match model.save(&pool).await {
+                            match model.save_into_db(&pool) {
                                 Ok(ev) => log::info!("new event found: {}", ev.source),
                                 Err(e) => log::error!("error saving result :: {}", e),
                             };

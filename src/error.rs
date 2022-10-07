@@ -2,7 +2,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 pub enum Error {
     DatabaseConnectionError(String),
-    DatabaseReadError(String),
+    DatabaseExecutionError(String),
     DatabasePoolError(String),
     IODirectoryError(String),
     IOPathError(String),
@@ -24,7 +24,9 @@ impl std::fmt::Display for Error {
             Self::DatabaseConnectionError(addr) => {
                 write!(f, "unable to connect to database at {}", addr)
             }
-            Self::DatabaseReadError(err) => write!(f, "unable to read from database: {}", err),
+            Self::DatabaseExecutionError(err) => {
+                write!(f, "unable to execute the database query: {}", err)
+            }
             Self::DatabasePoolError(err) => write!(
                 f,
                 "unable to retrieve connection from the database pool: {}",
@@ -52,7 +54,7 @@ impl std::fmt::Display for Error {
             }
             Self::WebBindError(addr) => write!(f, "failed to bind web server to {}", addr),
             Self::WebRuntimeError(err) => write!(f, "web server runtime error: {}", err),
-        
+
             Self::GenericError(err) => write!(f, "{}", err),
         }
     }

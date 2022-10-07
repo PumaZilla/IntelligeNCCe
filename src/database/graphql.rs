@@ -1,86 +1,108 @@
+use super::models::{Event, Keyword, NewEvent, NewKeyword};
+use diesel::RunQueryDsl;
+use juniper::{graphql_object, EmptySubscription, FieldResult, RootNode};
+use std::sync::Arc;
+
 #[derive(Clone)]
 pub struct Context {
-    pub pool: std::sync::Arc<super::DBConnection>,
+    pub pool: Arc<super::DBConnection>,
+}
+impl Context {
+    pub fn new(pool: Arc<super::DBConnection>) -> Self {
+        Self { pool }
+    }
 }
 impl juniper::Context for Context {}
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
-pub type Schema = juniper::RootNode<'static, Query, Mutation, juniper::EmptySubscription<Context>>;
+pub type Schema = RootNode<'static, Query, Mutation, EmptySubscription<Context>>;
 pub fn build_schema() -> Schema {
     log::trace!("building graphql schema");
-    Schema::new(Query, Mutation, juniper::EmptySubscription::new())
+    Schema::new(Query, Mutation, EmptySubscription::new())
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
 pub struct Query;
-#[juniper::graphql_object(Context = Context)]
+#[graphql_object(Context = Context)]
 impl Query {
-    pub async fn health() -> bool {
+    pub fn new() -> Self {
+        Self {}
+    }
+    pub fn health() -> bool {
         log::trace!("graphql query received: health");
         true
     }
-    pub async fn api_version() -> &'static str {
+    pub fn api_version() -> &'static str {
         log::trace!("graphql query received: apiVersion");
         "1"
     }
 
-    pub async fn event(ctx: &Context) -> juniper::FieldResult<Vec<super::models::event::Model>> {
-        log::trace!("graphql query received: event");
-        super::models::event::Model::read(ctx).await
-    }
-    pub async fn event_by_type(ctx: &Context, type_: super::models::event::Type) -> juniper::FieldResult<Vec<super::models::event::Model>> {
-        log::trace!("graphql query received: eventByType");
-        super::models::event::Model::filter_by_type(ctx, type_).await
+    pub fn events(ctx: &Context) -> FieldResult<Vec<Event>> {
+        log::trace!("graphql query received: events");
+        use super::schema::events;
+        let mut conn = ctx.pool.get()?;
+        Ok(events::table.load(&mut conn)?)
     }
 
-    pub async fn keyword(
-        ctx: &Context,
-    ) -> juniper::FieldResult<Vec<super::models::keyword::Model>> {
-        log::trace!("graphql query received: keyword");
-        super::models::keyword::Model::read(ctx).await
+    pub fn keywords(ctx: &Context) -> FieldResult<Vec<Keyword>> {
+        log::trace!("graphql query received: keywords");
+        Ok(Keyword::get_all(&ctx.pool)?)
     }
+
+    /*
+    pub fn event(ctx: &Context) -> FieldResult<Vec<Event>> {
+        log::trace!("graphql query received: event");
+        Event::read(ctx).await
+    }
+
+    pub fn keyword(ctx: &Context) -> FieldResult<Vec<Keyword>> {
+        log::trace!("graphql query received: keyword");
+        Keyword::read(ctx).await
+    }
+    */
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
 pub struct Mutation;
-#[juniper::graphql_object(Context = Context)]
+#[graphql_object(Context = Context)]
 impl Mutation {
-    pub async fn create_event(
-        ctx: &Context,
-        event: super::models::event::NewModel,
-    ) -> juniper::FieldResult<super::models::event::Model> {
+    pub fn create_event(ctx: &Context, event: NewEvent) -> FieldResult<Event> {
+        log::trace!("graphql mutation received: createEvent");
+        Ok(event.save_into_db(&ctx.pool)?)
+    }
+    pub fn create_keyword(ctx: &Context, keyword: NewKeyword) -> FieldResult<Keyword> {
+        log::trace!("graphql mutation received: createKeyword");
+        use crate::database::schema::keywords;
+        let mut conn = ctx.pool.get()?;
+        Ok(diesel::insert_into(keywords::table)
+            .values(keyword)
+            .get_result(&mut conn)?)
+    }
+
+    /*
+    pub fn create_event(ctx: &Context, event: NewEvent) -> FieldResult<Event> {
         log::trace!("graphql mutation received: createEvent");
         event.create(ctx).await
     }
-    pub async fn delete_event(
-        ctx: &Context,
-        id: i32,
-    ) -> juniper::FieldResult<super::models::event::Model> {
+    pub fn delete_event(ctx: &Context, id: i32) -> FieldResult<Event> {
         log::trace!("graphql mutation received: deleteEvent");
-        super::models::event::Model::delete(ctx, id).await
+        Event::delete(ctx, id).await
     }
 
-    pub async fn create_keyword(
-        ctx: &Context,
-        keyword: super::models::keyword::NewModel,
-    ) -> juniper::FieldResult<super::models::keyword::Model> {
+    pub fn create_keyword(ctx: &Context, keyword: NewKeyword) -> FieldResult<Keyword> {
         log::trace!("graphql mutation received: createKeyword");
         keyword.create(ctx).await
     }
-    pub async fn update_keyword(
-        ctx: &Context,
-    ) -> juniper::FieldResult<Vec<super::models::keyword::Model>> {
+    pub fn update_keyword(ctx: &Context) -> FieldResult<Vec<Keyword>> {
         log::trace!("graphql mutation received: updateKeyword");
-        super::models::keyword::Model::update(ctx).await
+        Keyword::update(ctx).await
     }
-    pub async fn delete_keyword(
-        ctx: &Context,
-        id: i32,
-    ) -> juniper::FieldResult<super::models::keyword::Model> {
+    pub fn delete_keyword(ctx: &Context, id: i32) -> FieldResult<Keyword> {
         log::trace!("graphql mutation received: deleteKeyword");
-        super::models::keyword::Model::delete(ctx, id).await
+        Keyword::delete(ctx, id).await
     }
+    */
 }

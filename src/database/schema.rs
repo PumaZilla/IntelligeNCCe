@@ -1,22 +1,10 @@
-pub mod sql_types {
-    #[derive(diesel::sql_types::SqlType,diesel::QueryId)]
-    #[diesel(postgres_type(name = "etype"))]
-    pub struct Etype;
-
-    #[derive(diesel::sql_types::SqlType)]
-    #[diesel(postgres_type(name = "ktype"))]
-    pub struct Ktype;
-}
-
 diesel::table! {
-    use diesel::sql_types::*;
-    use super::sql_types::Etype;
-
-    event (id) {
+    events (id) {
         id -> Int4,
         template -> Varchar,
+        // type_ -> Etype,
         #[sql_name = "type"]
-        type_ -> Etype,
+        type_ -> Varchar,
         source -> Text,
         data -> Text,
         created_at -> Timestamp,
@@ -24,20 +12,25 @@ diesel::table! {
 }
 
 diesel::table! {
-    use diesel::sql_types::*;
-    use super::sql_types::Ktype;
 
-    keyword (id) {
+    keywords (id) {
         id -> Int4,
         #[sql_name = "type"]
-        type_ -> Ktype,
+        type_ -> Varchar,
         value -> Varchar,
         created_at -> Timestamp,
         last_consulted -> Timestamp,
     }
 }
 
-diesel::allow_tables_to_appear_in_same_query!(
-    event,
-    keyword,
-);
+diesel::table! {
+    events_keywords (event, keyword) {
+        event -> Int4,
+        keyword -> Int4,
+    }
+}
+
+diesel::joinable!(events_keywords -> events (event));
+diesel::joinable!(events_keywords -> keywords (keyword));
+
+diesel::allow_tables_to_appear_in_same_query!(events, keywords, events_keywords,);

@@ -55,9 +55,7 @@ async fn graphql(
             .map(|x| x.to_string())
             .unwrap_or("someone".to_string())
     );
-    let ctx = crate::database::graphql::Context {
-        pool: db.get_ref().clone(),
-    };
+    let ctx = crate::database::graphql::Context::new(db.get_ref().clone());
     let res = gqlreq.execute(&schema, &ctx).await;
     actix_web::HttpResponse::Ok().json(res)
 }

@@ -40,12 +40,12 @@ impl Event {
         self.template = template.to_string();
     }
 
-    pub fn into_model(self) -> crate::database::models::event::NewModel {
+    pub fn into_model(self) -> crate::database::models::NewEvent {
         log::trace!("converting event into model...");
-        use crate::database::models::event::Type;
-        crate::database::models::event::NewModel {
+        // use crate::database::models::EventType;
+        crate::database::models::NewEvent {
             template: self.template,
-            type_: Type::from_str(&self.type_.to_string()).unwrap_or(Type::default()),
+            type_: String::from("paste"), // EventType::from_str(&self.type_.to_string()).unwrap_or(EventType::default()),
             source: self.source,
             data: self.data,
         }
