@@ -54,7 +54,13 @@ impl Query {
 
     pub fn keywords(ctx: &Context) -> FieldResult<Vec<Keyword>> {
         log::trace!("graphql query received: keywords");
-        Ok(Keyword::get_all(&ctx.pool)?)
+        let mut keywords = Keyword::get_all(&ctx.pool)?;
+        keywords.iter_mut().for_each(|keyword| {
+            if let Err(err) = keyword.get_events(&ctx.pool) {
+                log::error!("failed to get events for keyword {}: {}", keyword.id, err);
+            }
+        });
+        Ok(keywords)
     }
 
     /*

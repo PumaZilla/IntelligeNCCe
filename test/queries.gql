@@ -42,12 +42,20 @@ query EventR {
 }
 
 mutation KeywordC {
-  domain: createKeyword(keyword: {type: "domain", value: "nccgroup.com"}) {
+  domain: createKeyword(keyword: {type: "domain", value: "nttdata.com"}) {
     id
     type
     value
     createdAt
     lastConsulted
+    events {
+      id
+      template
+      type
+      source
+      data
+      createdAt
+    }
   }
 }
 
@@ -58,5 +66,13 @@ query KeywordR {
     value
     createdAt
     lastConsulted
+    events {
+      id
+      template
+      type
+      source
+      data
+      createdAt
+    }
   }
 }
