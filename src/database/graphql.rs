@@ -27,9 +27,6 @@ pub fn build_schema() -> Schema {
 pub struct Query;
 #[graphql_object(Context = Context)]
 impl Query {
-    pub fn new() -> Self {
-        Self {}
-    }
     pub fn health() -> bool {
         log::trace!("graphql query received: health");
         true

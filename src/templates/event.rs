@@ -1,7 +1,7 @@
 #[derive(Debug, Clone)]
 pub struct Event {
     pub template: String,
-    pub type_: EventType,
+    pub type_: String,
     pub source: String,
     pub data: String,
 }
@@ -9,7 +9,7 @@ impl Default for Event {
     fn default() -> Self {
         Self {
             template: "-- Unknown template".to_string(),
-            type_: EventType::Raw,
+            type_: "-- Unknown type".to_string(),
             source: "-- Unknown source".to_string(),
             data: "-- No data".to_string(),
         }
@@ -43,7 +43,7 @@ impl Event {
         // use crate::database::models::EventType;
         crate::database::models::NewEvent {
             template: self.template,
-            type_: String::from("paste"), // EventType::from_str(&self.type_.to_string()).unwrap_or(EventType::default()),
+            type_: self.type_.into(),
             source: self.source,
             data: self.data,
         }

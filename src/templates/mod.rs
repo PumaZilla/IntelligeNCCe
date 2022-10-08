@@ -2,7 +2,7 @@ mod action;
 mod event;
 mod step;
 
-use crate::error::{Error, Result};
+use crate::{database::models::EventType,error::{Error, Result}};
 
 const DEFAULT_SLEEP_TICK: u64 = 2;
 const DEFAULT_KEY: &str = " ::default";
@@ -125,7 +125,8 @@ impl Template {
                 // check the raw results
                 for result in results {
                     // check the keywords
-                    if result.type_ == event::EventType::Raw {
+                    let type_: EventType = result.type_.as_str().into();
+                    if type_ == EventType::default() {
                         let ids = result.check_content(&keywords);
                         if ids.len() > 0 {
                             // update the result

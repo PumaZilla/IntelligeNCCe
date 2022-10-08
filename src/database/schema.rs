@@ -1,10 +1,9 @@
 diesel::table! {
     events (id) {
-        id -> Int4,
+        id -> Integer,
         template -> Varchar,
-        // type_ -> Etype,
         #[sql_name = "type"]
-        type_ -> Varchar,
+        type_ -> Integer,
         source -> Text,
         data -> Text,
         created_at -> Timestamp,
@@ -14,9 +13,9 @@ diesel::table! {
 diesel::table! {
 
     keywords (id) {
-        id -> Int4,
+        id -> Integer,
         #[sql_name = "type"]
-        type_ -> Varchar,
+        type_ -> Integer,
         value -> Varchar,
         created_at -> Timestamp,
         last_consulted -> Timestamp,

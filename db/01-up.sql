@@ -1,32 +1,33 @@
--- Keywords
-
--- CREATE TYPE KTYPE AS ENUM ('text','credential','domain','email','ip','phone','url','username'); 
-
-CREATE TABLE IF NOT EXISTS "keywords" (
-  "id"              SERIAL PRIMARY KEY,
-  "type"            VARCHAR(50) NOT NULL DEFAULT 'text',
-  "value"           VARCHAR(255) NOT NULL,
-  "created_at"      TIMESTAMP NOT NULL DEFAULT NOW(),
-  "last_consulted"  TIMESTAMP NOT NULL DEFAULT NOW(),
-
-  CONSTRAINT "keywords_uk_link" UNIQUE ("value")
-);
 
 -- Events
-
--- CREATE TYPE ETYPE AS ENUM ('paste'); 
 
 CREATE TABLE IF NOT EXISTS "events" (
   "id"              SERIAL,
   "template"        VARCHAR(255) NOT NULL DEFAULT '::unknown',
-  "type"            VARCHAR(50) NOT NULL DEFAULT 'paste',
+  "type"            INTEGER NOT NULL DEFAULT 0,
   "source"          TEXT NOT NULL,
   "data"            TEXT NOT NULL,
   "created_at"      TIMESTAMP NOT NULL DEFAULT NOW(),
 
   CONSTRAINT "events_pk" PRIMARY KEY ("id"),
-  CONSTRAINT "events_uk_link" UNIQUE ("source","data")
+  CONSTRAINT "events_uk_link" UNIQUE ("source","data"),
+  CONSTRAINT "events_ck_type" CHECK ("type" >= 0 AND "type" <= 0)
+
 );
+
+-- Keywords
+
+CREATE TABLE IF NOT EXISTS "keywords" (
+  "id"              SERIAL PRIMARY KEY,
+  "type"            INTEGER NOT NULL DEFAULT 0,
+  "value"           VARCHAR(255) NOT NULL,
+  "created_at"      TIMESTAMP NOT NULL DEFAULT NOW(),
+  "last_consulted"  TIMESTAMP NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT "keywords_uk_link" UNIQUE ("value"),
+  CONSTRAINT "keywords_ck_type" CHECK ("type" >= 0 AND "type" <= 6)
+);
+
 
 -- Relationships
 
