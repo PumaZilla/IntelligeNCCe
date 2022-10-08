@@ -43,7 +43,13 @@ impl Query {
         log::trace!("graphql query received: events");
         use super::schema::events;
         let mut conn = ctx.pool.get()?;
-        Ok(events::table.load(&mut conn)?)
+        let mut events = events::table.load::<Event>(&mut conn)?;
+        events.iter_mut().for_each(|event| {
+            if let Err(err) = event.get_keywords(&ctx.pool) {
+                log::error!("failed to get keywords for event {}: {}", event.id, err);
+            }
+        });
+        Ok(events)
     }
 
     pub fn keywords(ctx: &Context) -> FieldResult<Vec<Keyword>> {

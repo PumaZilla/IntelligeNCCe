@@ -6,45 +6,43 @@ query Builtins {
 }
 
 mutation EventC {
-  domain: createEvent(event: {template: "playground", type: PASTE, source: "https://kike.wtf/", data: "Cupcake ipsum dolor sit amet croissant bonbon. I love wafer jelly jelly beans I love. Pudding biscuit chocolate cake gingerbread lollipop jelly-o jelly-o. Gummies croissant tiramisu halvah toffee caramels. Cake danish toffee macaroon chocolate dessert chocolate cake cotton candy. Dragée chocolate cake jelly-o cookie apple pie liquorice liquorice. Liquorice chupa chups I love dessert cake I love apple pie ice cream."}) {
+  paste: createEvent(event: {template: "playground", type: "PASTE", source: "https://kike.wtf/", data: "Cupcake ipsum dolor sit amet croissant bonbon. I love wafer jelly jelly beans I love. Pudding biscuit chocolate cake gingerbread lollipop jelly-o jelly-o. Gummies croissant tiramisu halvah toffee caramels. Cake danish toffee macaroon chocolate dessert chocolate cake cotton candy. Dragée chocolate cake jelly-o cookie apple pie liquorice liquorice. Liquorice chupa chups I love dessert cake I love apple pie ice cream."}) {
     id
     template
     type
     source
     data
     createdAt
+    keywords {
+      id
+      type
+      value
+      timestamp: createdAt
+      lastConsulted
+    }
   }
 }
+
 query EventR {
-  event {
-    id
-    template
-    type
-    source
-    data
-    timestamp: createdAt
-  }
-}
-mutation EventD {
-  deleteEvent(id: 1) {
+  events: events {
     id
     template
     type
     source
     data
     createdAt
+    keywords {
+      id
+      type
+      value
+      timestamp: createdAt
+      lastConsulted
+    }
   }
 }
 
 mutation KeywordC {
-  text:createKeyword(keyword: {type: TEXT, value: "example"}) {
-    id
-    type
-    value
-    createdAt
-    lastConsulted
-  }
-  domain: createKeyword(keyword: {type: DOMAIN, value: "example.com"}) {
+  domain: createKeyword(keyword: {type: "domain", value: "nccgroup.com"}) {
     id
     type
     value
@@ -52,26 +50,9 @@ mutation KeywordC {
     lastConsulted
   }
 }
+
 query KeywordR {
-  keyword {
-    id
-    type
-    value
-    createdAt
-    lastConsulted
-  }
-}
-mutation KeywordU {
-  updateKeyword {
-    id
-    type
-    value
-    createdAt
-    lastConsulted
-  }
-}
-mutation KeywordD {
-  deleteKeyword(id: 1) {
+  keywords {
     id
     type
     value

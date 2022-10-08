@@ -3,7 +3,7 @@ use crate::{
     error::{Error, Result},
 };
 use chrono::NaiveDateTime;
-use diesel::{Insertable, QueryDsl, Queryable, RunQueryDsl, Selectable};
+use diesel::{Insertable, Queryable, RunQueryDsl, Selectable};
 use juniper::{GraphQLInputObject, GraphQLObject};
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
