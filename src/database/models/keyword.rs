@@ -104,20 +104,20 @@ pub struct NewModel {
 pub enum Type {
     #[default]
     Text,
-    IP,
+    Ip,
     Domain,
-    URL,
+    Url,
     Email,
     Credential,
 }
 impl From<i32> for Type {
     fn from(value: i32) -> Self {
         match value {
-            1 => Type::IP,
-            2 => Type::Domain,
-            3 => Type::URL,
-            4 => Type::Email,
-            5 => Type::Credential,
+            1 => Self::Ip,
+            2 => Self::Domain,
+            3 => Self::Url,
+            4 => Self::Email,
+            5 => Self::Credential,
             _ => Self::Text,
         }
     }
@@ -129,9 +129,9 @@ where
 {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, DB>) -> Serialized {
         match self {
-            Self::IP => 1.to_sql(out),
+            Self::Ip => 1.to_sql(out),
             Self::Domain => 2.to_sql(out),
-            Self::URL => 3.to_sql(out),
+            Self::Url => 3.to_sql(out),
             Self::Email => 4.to_sql(out),
             Self::Credential => 5.to_sql(out),
             _ => 0.to_sql(out),
@@ -147,9 +147,9 @@ where
         let x = i32::from_sql(value)?;
         match x {
             0 => Ok(Self::Text),
-            1 => Ok(Self::IP),
+            1 => Ok(Self::Ip),
             2 => Ok(Self::Domain),
-            3 => Ok(Self::URL),
+            3 => Ok(Self::Url),
             4 => Ok(Self::Email),
             5 => Ok(Self::Credential),
             _ => Err(format!("unrecognized enum variant: {}", x).into()),
