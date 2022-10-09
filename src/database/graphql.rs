@@ -78,9 +78,9 @@ impl Query {
 pub struct Mutation;
 #[graphql_object(Context = Context)]
 impl Mutation {
-    pub fn create_event(ctx: &Context, event: NewEvent) -> FieldResult<Event> {
+    pub fn create_event(ctx: &Context, keyword_id: i32, event: NewEvent) -> FieldResult<Event> {
         log::trace!("graphql mutation received: createEvent");
-        Ok(event.save_into_db(&ctx.pool)?)
+        Ok(event.save_into_db(&ctx.pool, keyword_id)?)
     }
     pub fn create_keyword(ctx: &Context, keyword: NewKeyword) -> FieldResult<Keyword> {
         log::trace!("graphql mutation received: createKeyword");

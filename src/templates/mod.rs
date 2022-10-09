@@ -131,20 +131,12 @@ impl Template {
                         if ids.len() > 0 {
                             // update the result
                             let model = result.into_model();
-                            match model.save_into_db(&pool) {
-                                Ok(ev) => log::info!("new event found: {}", ev.source),
-                                Err(e) => log::error!("error saving result :: {}", e),
-                            };
-                            // TODO: add event id + keyword id relationship
-                            /*
                             ids.iter().for_each(|id| {
-                                log::debug!(
-                                    "Adding new event (keywords \"{}\" found at {})",
-                                    keywords.get(id).unwrap(),
-                                    result.source
-                                );
+                                match model.save_into_db(&pool,*id) {
+                                    Ok(ev) => log::info!("new event found for keyword #{}: {}", id, ev.source),
+                                    Err(e) => log::error!("error saving result for keyword #{} :: {}", id, e),
+                                };
                             });
-                            */
                         }
                     }
                 }

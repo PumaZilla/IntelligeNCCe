@@ -1,5 +1,9 @@
 use crate::{
-    database::{models::Keyword, schema::events, DBConnection},
+    database::{
+        models::Keyword,
+        schema::{events, events_keywords, keywords},
+        DBConnection,
+    },
     error::{Error, Result},
 };
 use chrono::NaiveDateTime;
@@ -9,7 +13,8 @@ use diesel::{
     pg::Pg,
     serialize::{Output, Result as Serialized, ToSql},
     sql_types::Integer,
-    AsExpression, ExpressionMethods, Insertable, QueryDsl, Queryable, RunQueryDsl,
+    AsExpression, ExpressionMethods, Insertable, OptionalExtension, QueryDsl, Queryable,
+    RunQueryDsl,
 };
 use juniper::{GraphQLEnum, GraphQLInputObject, GraphQLObject};
 
@@ -43,7 +48,6 @@ impl Queryable<events::SqlType, Pg> for Model {
 }
 impl Model {
     pub fn get_keywords(&mut self, pool: &DBConnection) -> Result<()> {
-        use crate::database::schema::{events_keywords, keywords};
         let mut conn = pool
             .get()
             .map_err(|e| Error::DatabasePoolError(e.to_string()))?;
@@ -70,14 +74,46 @@ pub struct NewModel {
     pub data: String,
 }
 impl NewModel {
-    pub fn save_into_db(&self, pool: &DBConnection) -> Result<Model> {
+    pub fn save_into_db(&self, pool: &DBConnection, keyword: i32) -> Result<Model> {
         let mut conn = pool
             .get()
             .map_err(|e| Error::DatabasePoolError(e.to_string()))?;
-        Ok(diesel::insert_into(events::table)
-            .values(self)
-            .get_result(&mut conn)
-            .map_err(|e| Error::DatabaseExecutionError(e.to_string()))?)
+        let mut event_exists = events::table
+            // check if the event already exists
+            .filter(events::columns::source.eq(&self.source))
+            .filter(events::columns::data.eq(&self.data))
+            .first::<Model>(&mut conn)
+            .optional()
+            .map_err(|e| Error::DatabaseExecutionError(e.to_string()))?;
+        // if not exists, insert it
+        if event_exists.is_none() {
+            event_exists = diesel::insert_into(events::table)
+                .values(self)
+                .get_result::<Model>(&mut conn)
+                .optional()
+                .map_err(|e| Error::DatabaseExecutionError(e.to_string()))?;
+        }
+        let event = event_exists.ok_or(Error::DatabaseExecutionError(format!(
+            "Error inserting event: {}::{}",
+            self.template, self.source
+        )))?;
+        // create the link between the event and the keyword
+        let assoc_exists = events_keywords::table
+            // check if the association between the event and the keyword already exists
+            .filter(events_keywords::columns::event.eq(event.id))
+            .filter(events_keywords::columns::keyword.eq(keyword))
+            .first::<AssociationKeyword>(&mut conn)
+            .optional()
+            .map_err(|e| Error::DatabaseExecutionError(e.to_string()))?;
+        // if not exists, insert it
+        if assoc_exists.is_none() {
+            diesel::insert_into(events_keywords::table)
+                .values(AssociationKeyword::new(event.id, keyword))
+                .execute(&mut conn)
+                .map_err(|e| Error::DatabaseExecutionError(e.to_string()))?;
+        }
+        // return the event
+        Ok(event)
     }
 }
 
@@ -131,5 +167,19 @@ where
             0 => Ok(Self::Paste),
             _ => Err(format!("unrecognized enum variant: {}", x).into()),
         }
+    }
+}
+
+// // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
+
+#[derive(Insertable, Queryable)]
+#[diesel(table_name = events_keywords)]
+struct AssociationKeyword {
+    pub event: i32,
+    pub keyword: i32,
+}
+impl AssociationKeyword {
+    pub fn new(event: i32, keyword: i32) -> Self {
+        Self { event, keyword }
     }
 }

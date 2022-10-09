@@ -6,7 +6,7 @@ query Builtins {
 }
 
 mutation EventC {
-  paste: createEvent(event: {template: "playground", type: PASTE, source: "https://kike.wtf/", data: "Cupcake ipsum dolor sit amet croissant bonbon. I love wafer jelly jelly beans I love. Pudding biscuit chocolate cake gingerbread lollipop jelly-o jelly-o. Gummies croissant tiramisu halvah toffee caramels. Cake danish toffee macaroon chocolate dessert chocolate cake cotton candy. Dragée chocolate cake jelly-o cookie apple pie liquorice liquorice. Liquorice chupa chups I love dessert cake I love apple pie ice cream."}) {
+  paste: createEvent(keywordId: 1, event: {template: "playground", type: PASTE, source: "https://kike.wtf/", data: "Cupcake ipsum dolor sit amet croissant bonbon. I love wafer jelly jelly beans I love. Pudding biscuit chocolate cake gingerbread lollipop jelly-o jelly-o. Gummies croissant tiramisu halvah toffee caramels. Cake danish toffee macaroon chocolate dessert chocolate cake cotton candy. Dragée chocolate cake jelly-o cookie apple pie liquorice liquorice. Liquorice chupa chups I love dessert cake I love apple pie ice cream."}) {
     id
     template
     type
@@ -43,21 +43,6 @@ query EventR {
 
 mutation KeywordC {
   domain: createKeyword(keyword: {type: DOMAIN, value: "nttdata.com"}) {
-    id
-    type
-    value
-    createdAt
-    lastConsulted
-    events {
-      id
-      template
-      type
-      source
-      data
-      createdAt
-    }
-  }
-  text: createKeyword(keyword: {type: TEXT, value: "NCC Group"}) {
     id
     type
     value
