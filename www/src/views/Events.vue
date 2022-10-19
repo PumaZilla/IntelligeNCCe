@@ -1,4 +1,5 @@
 <script>
+import { computed, reactive, ref } from "vue";
 import queryDB from '@/composables/queryDB';
 import vueTable from '@/components/plugins/VueTable.vue';
 import { useAppVariableStore } from '@/stores/app-variable';
@@ -10,9 +11,11 @@ export default {
 	data() {
 		return {
 			rendered: true,
-			events: [],
-			eventsTable: {
-				isLoading: true, // FIXME: This is a workaround for a bug in vue-table
+			searchTerm: ref(''),
+			filterType: ref(''),
+			events: reactive([]),
+			eventsTable: reactive({
+				isLoading: true,
 				columns: [
 					{
 						label: "ID",
@@ -28,8 +31,7 @@ export default {
 						width: "10%",
 						sortable: true,
 						columnStyles: { "text-align": "center" },
-						display: function(row) {
-							console.log(row)
+						display: function (row) {
 							let d = new Date(row[this.field] * 1000);
 							return `${d.toLocaleString('es-ES')}`;
 						},
@@ -40,8 +42,8 @@ export default {
 						width: "3%",
 						sortable: true,
 						columnStyles: { "text-align": "center" },
-						display: function(row) {
-							return '<span class="badge border border-secondary text-secondary px-2 pt-5px pb-5px rounded fs-12px d-inline-flex align-items-center">' + row[this.field].toUpperCase() + '</span>';
+						display: function (row) {
+							return '<span class="badge border border-secondary text-secondary px-2 pt-5px pb-5px rounded fs-12px d-inline-flex align-items-center">' + row[this.field].toUpperCase() + '</span>'; // FIXME: Sanitize this
 						}
 					},
 					{
@@ -55,7 +57,7 @@ export default {
 						field: "source",
 						width: "13%",
 						sortable: true,
-						display: function(row) {
+						display: function (row) {
 							let n = 80;
 							if (typeof row[this.field] !== 'string') return row[this.field];
 							let s = row[this.field].substr(0, n - 1) + (row[this.field].length > n ? '...' : '')
@@ -66,46 +68,42 @@ export default {
 						label: "Data",
 						field: "data",
 						width: "50%",
-						display: function(row) {
+						display: function (row) {
 							let n = 110;
 							if (typeof row[this.field] !== 'string') return row[this.field];
-							return row[this.field].substr(0, n - 1) + (row[this.field].length > n ? '...' : '')
+							return row[this.field].substr(0, n - 1) + (row[this.field].length > n ? '...' : '') // FIXME: Sanitize this
 						},
 					}
 				],
-				rows: [{"id":1,"template":"playground","type":"PASTE","source":"https://kike.wtf/","data":"Cupcake ipsum dolor sit amet croissant bonbon. I love wafer jelly jelly beans I love. Pudding biscuit chocolate cake gingerbread lollipop jelly-o jelly-o. Gummies croissant tiramisu halvah toffee caramels. Cake danish toffee macaroon chocolate dessert chocolate cake cotton candy. Dragée chocolate cake jelly-o cookie apple pie liquorice liquorice. Liquorice chupa chups I love dessert cake I love apple pie ice cream.","timestamp":1666184855,"keywords":[{"id":1,"type":"DOMAIN","value":"nttdata.com","timestamp":1666184858,"lastConsulted":1666184858}]}], // FIXME:DEBUG
-				totalRecordCount: 1,
+				rows: [],
+				totalRecordCount: 0,
 				sortable: {
 					order: "id",
 					sort: "desc",
 				},
-			}
+			})
 		}
 	},
 	mounted() {
 		let sortmode = (a, b) => b.id - a.id;
-		/*
-		queryDB('query{event{id,timestamp:createdAt,template,type,source,data}}',
+		queryDB('query{events{id,timestamp:createdAt,template,type,source,data}}',
 			(data) => {
-				this.events = data.event.sort(sortmode);
+				this.events = data.events.sort(sortmode);
 				this.eventsTable.rows = this.events;
-				this.eventsTable.totalRecordCount = this.events.length;
+				this.eventsTable.totalRecordCount = this.eventsTable.rows.length;
+				this.eventsTable.isLoading = false;
 			});
-		*/
 	},
 	methods: {
-		truncate(element) {
-			if (typeof element !== 'string') return element;
-
-			let n = 120;
-			return element.substr(0, n - 1) + (element.length > n ? '...' : '')
-		},
-		timestamp(element) {
-			let d = new Date(element * 1000);
-			return `${d.toLocaleString('es-ES')}`;
+		filterEvents() {
+			let search = this.searchTerm.toLowerCase();
+			this.eventsTable.rows = this.events.filter(function (event) {
+				return event.template.toLowerCase().includes(search) || event.source.toLowerCase().includes(search) || event.data.toLowerCase().includes(search);
+			});
+			this.eventsTable.totalRecordCount = this.eventsTable.rows.length;
 		},
 		getTypes(elements) {
-			return [...new Set(elements.map(k => k.type))];
+			return [...new Set(['ALL'].concat(elements.map(k => k.type)))];
 		},
 	}
 }
@@ -129,14 +127,16 @@ export default {
 
 		<!-- Display table -->
 		<card>
+			<!-- Events -->
 			<div class="tab-content p-4">
-				<!-- Events -->
+
 				<!-- Search bar -->
 				<div class="input-group mb-4">
 					<!-- Input -->
 					<div class="flex-fill position-relative">
 						<div class="input-group">
-							<input type="text" class="form-control px-35px" placeholder="Search event..." />
+							<input v-model="searchTerm" @input="filterEvents" type="text" class="form-control px-35px"
+								placeholder="Search event..." />
 							<div class="input-group-text position-absolute top-0 bottom-0 bg-none border-0 start-0"
 								style="z-index:1">
 								<i class="fa fa-search opacity-5"></i>
@@ -156,3 +156,6 @@ export default {
 		</card>
 	</div>
 </template>
+<style scoped>
+
+</style>

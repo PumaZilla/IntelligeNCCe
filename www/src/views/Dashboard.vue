@@ -16,10 +16,10 @@ export default {
 	},
 	mounted() {
 		let sortmode = (a, b) => b.id - a.id;
-		queryDB('query{keyword{id,timestamp:createdAt,type,value,lastConsulted}event{id,timestamp:createdAt,template,type,source,data}}',
+		queryDB('query{keywords{id,timestamp:createdAt,type,value,lastConsulted}events{id,timestamp:createdAt,template,type,source,data}}',
 			(data) => {
-				this.events = data.event.sort(sortmode);
-				this.keywords = data.keyword.sort(sortmode);
+				this.events = data.events.sort(sortmode);
+				this.keywords = data.keywords.sort(sortmode);
 			});
 	},
 	methods: {
@@ -246,8 +246,3 @@ export default {
 		</card>
 	</div>
 </template>
-<style>
-th:last-child {
-	width: 50%
-}
-</style>
