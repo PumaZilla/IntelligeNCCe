@@ -12,6 +12,7 @@ export default {
 		return {
 			rendered: true,
 			searchTerm: ref(''),
+			keywords: reactive([]),
 			events: reactive([]),
 			eventsTable: reactive({
 				isLoading: true,
@@ -23,7 +24,7 @@ export default {
 						sortable: true,
 						isKey: true,
 						columnStyles: { "text-align": "center" },
-						display: function(row) {
+						display: function (row) {
 							return '<a href="/event/' + row[this.field] + '">#' + row[this.field] + '</a>'; // FIXME: Sanitize this
 						}
 					},
@@ -82,8 +83,9 @@ export default {
 	},
 	mounted() {
 		let sortmode = (a, b) => b.id - a.id;
-		queryDB('query{events{id,timestamp:createdAt,template,type,source,data}}',
+		queryDB('query{keywords{id,timestamp:createdAt,type,value,lastConsulted}events{id,timestamp:createdAt,template,type,source,data}}',
 			(data) => {
+				this.keywords = data.keywords.sort(sortmode);
 				this.events = data.events.sort(sortmode);
 				this.eventsTable.rows = this.events;
 				this.eventsTable.totalRecordCount = this.eventsTable.rows.length;
@@ -98,12 +100,12 @@ export default {
 			let dorks = search.split(' ').filter(d => d.length > 0);
 			// filter the events
 			dorks.forEach(dork => {
-				let dsl = dork.split(':',2);
+				let dsl = dork.split(':', 2);
 				if (dsl.length == 2) {
 					let field = dsl[0];
 					let value = dsl[1];
 					events = events.filter(event => {
-						switch(field) {
+						switch (field) {
 							case "id":
 								return event[field] == value;
 							case "timestamp":
@@ -129,14 +131,50 @@ export default {
 		<div class="d-flex align-items-center mb-md-3 mb-2">
 			<!-- Title -->
 			<div class="flex-fill">
-				<h1 class="page-header mb-0">Events</h1>
+				<h1 class="page-header mb-0">Dashboard</h1>
 			</div>
 			<!-- Action -->
 			<div class="ms-auto">
 				<a href="#" data-bs-toggle="modal" class="btn btn-outline-theme">
 					<i class="fa fa-download me-1"></i>
-					Debug
+					Export
 				</a>
+			</div>
+		</div>
+
+		<!-- Description -->
+		<div class="mb-md-4 mb-3 d-md-flex">
+			<div class="ms-md-0 mt-md-0 mt-2">
+				<i class="fa fa-key fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'TEXT').length }} keyword(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-lock fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'CREDENTIAL').length }} credential(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-globe fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'DOMAIN').length }} domain(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-envelope fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'EMAIL').length }} email(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-server fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'IP').length }} IP(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-phone fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'PHONE').length }} phone(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-link fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'URL').length }} URL(s)
+			</div>
+			<div class="ms-md-4 mt-md-0 mt-2">
+				<i class="fa fa-user fa-fw fa-lg me-1 text-theme"></i>
+				{{ keywords.filter(k => k.type === 'USERNAME').length }} username(s)
 			</div>
 		</div>
 
@@ -150,21 +188,29 @@ export default {
 					<!-- Input -->
 					<div class="flex-fill position-relative">
 						<div class="input-group">
-							<input v-model="searchTerm" @input="filterEvents" type="text" class="form-control px-35px"
-								placeholder="Search event..." />
+							<input v-model="searchTerm" @input="filterEvents" type="text"
+								class="form-control px-35px rounded" placeholder="Search event..." />
 							<div class="input-group-text position-absolute top-0 bottom-0 bg-none border-0 start-0"
 								style="z-index:1">
 								<i class="fa fa-search opacity-5"></i>
 							</div>
 						</div>
 					</div>
+
+					<!-- Action -->
+					<div class="ms-4">
+						<a href="#" data-bs-toggle="modal" class="btn btn-outline-theme">
+							<i class="fa fa-download me-1"></i>
+							Debug
+						</a>
+					</div>
 				</div>
 
 				<!-- Event list -->
 				<div class="table-responsive">
 
-					<vue-table class="vue-table" :is-static-mode="true" :columns="eventsTable.columns"
-						:rows="eventsTable.rows" :total="eventsTable.totalRecordCount"
+					<vue-table class="vue-table" :is-static-mode="true" :is-fixed-first-column="true"
+						:columns="eventsTable.columns" :rows="eventsTable.rows" :total="eventsTable.totalRecordCount"
 						:sortable="eventsTable.sortable" />
 				</div>
 			</div>
@@ -175,10 +221,15 @@ export default {
 .truncated {
 	max-width: 0;
 }
+
 .truncated * {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
 	max-width: fit-content;
+}
+
+.vtl-tbody-td {
+	background-color: transparent !important;
 }
 </style>
