@@ -71,7 +71,7 @@ onMounted(() => {
 				</template>
 			</div>
 			<div class="p-3 px-4 mt-auto">
-				<a href="https://github.com/cosasdepuma/intelligencce" target="_blank" class="btn d-block btn-outline-theme">
+				<a href="https://git.pentest.ngs/kike.fontan/intelligencce" target="_blank" class="btn d-block btn-outline-theme">
 					<i class="fa fa-code-branch me-2 ms-n2 opacity-5"></i>
 					Repository
 				</a>

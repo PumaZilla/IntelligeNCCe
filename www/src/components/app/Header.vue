@@ -177,7 +177,7 @@ function checkForm(event) {
 					<div class="menu-img online">
 						<img src="/assets/img/user/profile.jpg" alt="Profile" height="60" />
 					</div>
-					<div class="menu-text d-sm-block d-none">username@account.com</div>
+					<div class="menu-text d-sm-block d-none">kike.fontan@nccgroup.com</div>
 				</a>
 				<div class="dropdown-menu dropdown-menu-end me-lg-3 fs-11px mt-1">
 					<RouterLink to="/profile" class="dropdown-item d-flex align-items-center">PROFILE <i class="bi bi-person-circle ms-auto text-theme fs-16px my-n1"></i></RouterLink>

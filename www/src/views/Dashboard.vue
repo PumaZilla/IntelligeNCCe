@@ -1,40 +1,126 @@
 <script>
+import { computed, reactive, ref } from "vue";
 import queryDB from '@/composables/queryDB';
+import vueTable from '@/components/plugins/VueTable.vue';
 import { useAppVariableStore } from '@/stores/app-variable';
 
 const appVariable = useAppVariableStore();
 
 export default {
+	components: { vueTable },
 	data() {
 		return {
-			events: [],
-			eventKeys: ['id', 'timestamp', 'template', 'type', 'source', 'data'],
-			keywords: [],
-			keywordKeys: ['id', 'timestamp', 'lastConsulted', 'type', 'value'],
 			rendered: true,
+			searchTerm: ref(''),
+			keywords: reactive([]),
+			events: reactive([]),
+			eventsTable: reactive({
+				isLoading: true,
+				columns: [
+					{
+						label: "ID",
+						field: "id",
+						width: "1%",
+						sortable: true,
+						isKey: true,
+						columnStyles: { "text-align": "center" },
+						display: function (row) {
+							return '<a href="/event/' + row[this.field] + '">#' + row[this.field] + '</a>'; // FIXME: Sanitize this
+						}
+					},
+					{
+						label: "Timestamp",
+						field: "timestamp",
+						width: "10%",
+						sortable: true,
+						columnStyles: { "text-align": "center" },
+						display: function (row) {
+							let d = new Date(row[this.field] * 1000);
+							return `${d.toLocaleString('es-ES')}`;
+						},
+					},
+					{
+						label: "Type",
+						field: "type",
+						width: "3%",
+						sortable: true,
+						columnStyles: { "text-align": "center" },
+						display: function (row) {
+							return '<span class="badge border border-secondary text-secondary px-2 pt-5px pb-5px rounded fs-12px d-inline-flex align-items-center">' + row[this.field].toUpperCase() + '</span>'; // FIXME: Sanitize this
+						}
+					},
+					{
+						label: "Template",
+						field: "template",
+						width: "8%",
+						sortable: true,
+					},
+					{
+						label: "Source",
+						field: "source",
+						width: "13%",
+						sortable: true,
+						columnClasses: ['truncated'],
+						display: function (row) {
+							return '<a href="' + row[this.field] + '">' + row[this.field] + '</a>'; // FIXME: Sanitize this
+						},
+					},
+					{
+						label: "Data",
+						field: "data",
+						width: "50%",
+						columnClasses: ['truncated'],
+					}
+				],
+				rows: [],
+				totalRecordCount: 0,
+				sortable: {
+					order: "id",
+					sort: "desc",
+				},
+			})
 		}
 	},
 	mounted() {
 		let sortmode = (a, b) => b.id - a.id;
 		queryDB('query{keywords{id,timestamp:createdAt,type,value,lastConsulted}events{id,timestamp:createdAt,template,type,source,data}}',
 			(data) => {
-				this.events = data.events.sort(sortmode);
 				this.keywords = data.keywords.sort(sortmode);
+				this.events = data.events.sort(sortmode);
+				this.eventsTable.rows = this.events;
+				this.eventsTable.totalRecordCount = this.eventsTable.rows.length;
+				this.eventsTable.isLoading = false;
 			});
 	},
 	methods: {
-		truncate(element) {
-			if (typeof element !== 'string') return element;
-
-			let n = 120;
-			return element.substr(0, n - 1) + (element.length > n ? '...' : '')
-		},
-		timestamp(element) {
-			let d = new Date(element * 1000);
-			return `${d.toLocaleString('es-ES')}`;
-		},
-		getTypes(elements) {
-			return [...new Set(elements.map(k => k.type))];
+		filterEvents() {
+			let events = this.events;
+			let search = this.searchTerm.toLowerCase();
+			// create the dorks
+			let dorks = search.split(' ').filter(d => d.length > 0);
+			// filter the events
+			dorks.forEach(dork => {
+				let dsl = dork.split(':', 2);
+				if (dsl.length == 2) {
+					let field = dsl[0];
+					let value = dsl[1];
+					events = events.filter(event => {
+						switch (field) {
+							case "id":
+								return event[field] == value;
+							case "timestamp":
+								return new Date(event[field] * 1000).toLocaleString('es-ES').includes(value);
+							default:
+								return event[field].toLowerCase().includes(value);
+						}
+					});
+				} else {
+					events = events.filter(e => e.source.toLowerCase().includes(dork) || e.data.toLowerCase().includes(dork));
+				}
+			});
+			// udpate the table rows
+			this.eventsTable.rows = events;
+			this.eventsTable.totalRecordCount = this.eventsTable.rows.length;
 		},
 	}
 }
@@ -55,7 +141,8 @@ export default {
 				</a>
 			</div>
 		</div>
-		<!-- Subheader -->
+
+		<!-- Description -->
 		<div class="mb-md-4 mb-3 d-md-flex">
 			<div class="ms-md-0 mt-md-0 mt-2">
 				<i class="fa fa-key fa-fw fa-lg me-1 text-theme"></i>
@@ -90,6 +177,7 @@ export default {
 				{{ keywords.filter(k => k.type === 'USERNAME').length }} username(s)
 			</div>
 		</div>
+
 		<!-- Display table -->
 		<card>
 			<!-- Event type selector -->
@@ -102,147 +190,60 @@ export default {
 			<div class="tab-content p-4">
 				<!-- Events -->
 				<div class="tab-pane fade show active" id="events">
+
 					<!-- Search bar -->
 					<div class="input-group mb-4">
 						<!-- Input -->
 						<div class="flex-fill position-relative">
 							<div class="input-group">
-								<input type="text" class="form-control px-35px" placeholder="Search event..." />
+								<input v-model="searchTerm" @input="filterEvents" type="text"
+									class="form-control px-35px rounded" placeholder="Search event..." />
 								<div class="input-group-text position-absolute top-0 bottom-0 bg-none border-0 start-0"
 									style="z-index:1">
 									<i class="fa fa-search opacity-5"></i>
 								</div>
 							</div>
 						</div>
+
 						<!-- Action -->
-						<button class="btn btn-outline-default dropdown-toggle rounded-0" type="button"
-							data-bs-toggle="dropdown">
-							<span class="d-none d-md-inline">Filter by type</span>
-							<span class="d-inline d-md-none">
-								<i class="fa fa-filter"></i>
-							</span>
-							&nbsp;
-						</button>
-						<div class="dropdown-menu">
-							<a class="dropdown-item" href="#" v-for="t in getTypes(events)">{{ t }}</a>
+						<div class="ms-4">
+							<a href="#" data-bs-toggle="modal" class="btn btn-outline-theme">
+								<i class="fa fa-download me-1"></i>
+								Debug
+							</a>
 						</div>
 					</div>
+
 					<!-- Event list -->
 					<div class="table-responsive">
-						<table class="table table-hover text-nowrap">
-							<thead class="table-dark">
-								<tr>
-									<th class="border-top-0 pt-2 pb-2 align-middle"></th>
-									<th class="border-top-0 pt-2 pb-2 align-middle text-center" v-for="k in eventKeys">
-										{{ k.charAt(0).toUpperCase() + k.slice(1) }}
-									</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr v-for="event in events">
-									<!-- Checkbox -->
-									<td class="align-middle action">
-										<div class="form-check">
-											<input type="checkbox" class="form-check-input" :id="'event#' + event.id">
-											<label class="form-check-label" :for="'event#' + event.id"></label>
-										</div>
-									</td>
-									<td class="align-middle text-center" v-for="k in eventKeys">
-										<RouterLink to="#unimplemented" v-if="k === 'id'">
-											#{{ event[k] }}
-										</RouterLink>
-										<span v-else-if="k === 'timestamp'">
-											{{ timestamp(event[k]) }}
-										</span>
-										<span v-else-if="k === 'template'"
-											class="badge border border-secondary text-secondary px-2 pt-5px pb-5px rounded fs-12px d-inline-flex align-items-center">
-											{{ truncate(event[k]) }}
-										</span>
-										<a v-else-if="k === 'source'" :href="event[k]" class="float-start">
-											{{ truncate(event[k]) }}
-										</a>
-										<span v-else class="float-start">
-											{{ truncate(event[k]) }}
-										</span>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-				<!-- Keywords -->
-				<div class="tab-pane fade" id="keywords">
-					<!-- Search bar -->
-					<div class="input-group mb-4">
-						<!-- Input -->
-						<div class="flex-fill position-relative">
-							<div class="input-group">
-								<input type="text" class="form-control px-35px" placeholder="Search keyword..." />
-								<div class="input-group-text position-absolute top-0 bottom-0 bg-none border-0 start-0"
-									style="z-index:1">
-									<i class=" fa fa-search opacity-5"></i>
-								</div>
-							</div>
-						</div>
-						<!-- Action -->
-						<button class="btn btn-outline-default dropdown-toggle rounded-0" type="button"
-							data-bs-toggle="dropdown">
-							<span class="d-none d-md-inline">Filter by type</span>
-							<span class="d-inline d-md-none">
-								<i class="fa fa-filter"></i>
-							</span>
-							&nbsp;
-						</button>
-						<div class="dropdown-menu">
-							<a class="dropdown-item" href="#" v-for="t in getTypes(keywords)">{{ t }}</a>
-						</div>
-					</div>
-					<!-- Keyword list -->
-					<div class="table-responsive">
-						<table class="table table-hover text-nowrap">
-							<thead class="table-dark">
-								<tr>
-									<th class="border-top-0 pt-2 pb-2 align-middle"></th>
-									<th class="border-top-0 pt-2 pb-2 align-middle text-center"
-										v-for="k in keywordKeys">
-										{{ k.charAt(0).toUpperCase() + k.slice(1) }}
-									</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr v-for="keyword in keywords">
-									<!-- Checkbox -->
-									<td class="align-middle action">
-										<div class="form-check">
-											<input type="checkbox" class="form-check-input"
-												:id="'keyword#' + keyword.id">
-											<label class="form-check-label" :for="'keyword#' + keyword.id"></label>
-										</div>
-									</td>
-									<td class="align-middle text-center" v-for="k in keywordKeys">
-										<RouterLink to="#unimplemented" v-if="k === 'id'">
-											#{{ keyword[k] }}
-										</RouterLink>
-										<span v-else-if="k === 'timestamp' || k === 'lastConsulted'">
-											{{ timestamp(keyword[k]) }}
-										</span>
-										<span v-else-if="k === 'type'"
-											class="badge border border-secondary text-secondary px-2 pt-5px pb-5px rounded fs-12px d-inline-flex align-items-center">
-											{{ truncate(keyword[k]) }}
-										</span>
-										<a v-else-if="k === 'source'" :href="keyword[k]" class="float-start">
-											{{ truncate(keyword[k]) }}
-										</a>
-										<span v-else class="float-start">
-											{{ truncate(keyword[k]) }}
-										</span>
-									</td>
-								</tr>
-							</tbody>
-						</table>
+
+						<vue-table class="vue-table" :is-static-mode="true" :is-fixed-first-column="true"
+							:columns="eventsTable.columns" :rows="eventsTable.rows"
+							:total="eventsTable.totalRecordCount" :sortable="eventsTable.sortable" />
 					</div>
 				</div>
 			</div>
 		</card>
 	</div>
 </template>
+<style>
+.truncated {
+	max-width: 0;
+}
+
+.truncated * {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: fit-content;
+}
+
+.vtl-thead-th {
+	text-align: center;
+}
+
+.vtl-thead-th,
+.vtl-tbody-td {
+	background-color: transparent !important;
+}
+</style>

@@ -10,10 +10,6 @@ export const useAppSidebarMenuStore = defineStore({
       'url': '/',
       'icon': 'bi bi-cpu',
       'text': 'Dashboard'
-    },{
-      'url': '/events',
-      'icon': 'bi bi-alert',
-      'text': 'Events'
     }]
   }
 });
