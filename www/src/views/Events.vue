@@ -12,20 +12,37 @@ export default {
 			rendered: true,
 			events: [],
 			eventsTable: {
-				isLoading: false,
+				isLoading: true, // FIXME: This is a workaround for a bug in vue-table
 				columns: [
 					{
 						label: "ID",
 						field: "id",
-						width: "3%",
+						width: "1%",
 						sortable: true,
 						isKey: true,
+						columnStyles: { "text-align": "center" },
 					},
 					{
 						label: "Timestamp",
 						field: "timestamp",
 						width: "10%",
 						sortable: true,
+						columnStyles: { "text-align": "center" },
+						display: function(row) {
+							console.log(row)
+							let d = new Date(row[this.field] * 1000);
+							return `${d.toLocaleString('es-ES')}`;
+						},
+					},
+					{
+						label: "Type",
+						field: "type",
+						width: "3%",
+						sortable: true,
+						columnStyles: { "text-align": "center" },
+						display: function(row) {
+							return '<span class="badge border border-secondary text-secondary px-2 pt-5px pb-5px rounded fs-12px d-inline-flex align-items-center">' + row[this.field].toUpperCase() + '</span>';
+						}
 					},
 					{
 						label: "Template",
@@ -34,25 +51,30 @@ export default {
 						sortable: true,
 					},
 					{
-						label: "Type",
-						field: "type",
-						width: "10%",
-						sortable: true,
-					},
-					{
 						label: "Source",
 						field: "source",
-						width: "25%",
+						width: "13%",
 						sortable: true,
+						display: function(row) {
+							let n = 80;
+							if (typeof row[this.field] !== 'string') return row[this.field];
+							let s = row[this.field].substr(0, n - 1) + (row[this.field].length > n ? '...' : '')
+							return '<a href="' + row[this.field] + '">' + s + '</a>'; // FIXME: Sanitize this
+						},
 					},
 					{
 						label: "Data",
 						field: "data",
 						width: "50%",
+						display: function(row) {
+							let n = 110;
+							if (typeof row[this.field] !== 'string') return row[this.field];
+							return row[this.field].substr(0, n - 1) + (row[this.field].length > n ? '...' : '')
+						},
 					}
 				],
-				rows: [],
-				totalRecordCount: 0,
+				rows: [{"id":1,"template":"playground","type":"PASTE","source":"https://kike.wtf/","data":"Cupcake ipsum dolor sit amet croissant bonbon. I love wafer jelly jelly beans I love. Pudding biscuit chocolate cake gingerbread lollipop jelly-o jelly-o. Gummies croissant tiramisu halvah toffee caramels. Cake danish toffee macaroon chocolate dessert chocolate cake cotton candy. Dragée chocolate cake jelly-o cookie apple pie liquorice liquorice. Liquorice chupa chups I love dessert cake I love apple pie ice cream.","timestamp":1666184855,"keywords":[{"id":1,"type":"DOMAIN","value":"nttdata.com","timestamp":1666184858,"lastConsulted":1666184858}]}], // FIXME:DEBUG
+				totalRecordCount: 1,
 				sortable: {
 					order: "id",
 					sort: "desc",
@@ -62,12 +84,14 @@ export default {
 	},
 	mounted() {
 		let sortmode = (a, b) => b.id - a.id;
+		/*
 		queryDB('query{event{id,timestamp:createdAt,template,type,source,data}}',
 			(data) => {
 				this.events = data.event.sort(sortmode);
 				this.eventsTable.rows = this.events;
 				this.eventsTable.totalRecordCount = this.events.length;
 			});
+		*/
 	},
 	methods: {
 		truncate(element) {
@@ -127,7 +151,6 @@ export default {
 					<vue-table class="vue-table" :is-static-mode="true" :columns="eventsTable.columns"
 						:rows="eventsTable.rows" :total="eventsTable.totalRecordCount"
 						:sortable="eventsTable.sortable" />
-
 				</div>
 			</div>
 		</card>
