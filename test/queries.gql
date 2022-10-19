@@ -5,6 +5,24 @@ query Builtins {
   apiVersion
 }
 
+mutation SecretC {
+  paste: createSecret(secret: {name: "SHODAN", value: "test"}) {
+    id
+    name
+    value
+    timestamp: createdAt
+  }
+}
+
+query SecretR {
+  secrets: secrets {
+    id
+    name
+    value
+    timestamp: createdAt
+  }
+}
+
 mutation EventC {
   paste: createEvent(keywordId: 1, event: {template: "playground", type: PASTE, source: "https://kike.wtf/", data: "Cupcake ipsum dolor sit amet croissant bonbon. I love wafer jelly jelly beans I love. Pudding biscuit chocolate cake gingerbread lollipop jelly-o jelly-o. Gummies croissant tiramisu halvah toffee caramels. Cake danish toffee macaroon chocolate dessert chocolate cake cotton candy. Dragée chocolate cake jelly-o cookie apple pie liquorice liquorice. Liquorice chupa chups I love dessert cake I love apple pie ice cream."}) {
     id

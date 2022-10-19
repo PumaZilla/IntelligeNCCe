@@ -1,4 +1,4 @@
-use super::models::{Event, Keyword, NewEvent, NewKeyword};
+use super::models::{Secret, Event, Keyword, NewSecret, NewEvent, NewKeyword};
 use diesel::RunQueryDsl;
 use juniper::{graphql_object, EmptySubscription, FieldResult, RootNode};
 use std::sync::Arc;
@@ -34,6 +34,13 @@ impl Query {
     pub fn api_version() -> &'static str {
         log::trace!("graphql query received: apiVersion");
         "1"
+    }
+
+    pub fn secrets(ctx: &Context) -> FieldResult<Vec<Secret>> {
+        log::trace!("graphql query received: secrets");
+        use super::schema::secrets;
+        let mut conn = ctx.pool.get()?;
+        Ok(secrets::table.load::<Secret>(&mut conn)?)
     }
 
     pub fn events(ctx: &Context) -> FieldResult<Vec<Event>> {
@@ -78,6 +85,14 @@ impl Query {
 pub struct Mutation;
 #[graphql_object(Context = Context)]
 impl Mutation {
+    pub fn create_secret(ctx: &Context, secret: NewSecret) -> FieldResult<Secret> {
+        log::trace!("graphql mutation received: createSecret");
+        use crate::database::schema::secrets;
+        let mut conn = ctx.pool.get()?;
+        Ok(diesel::insert_into(secrets::table)
+            .values(secret)
+            .get_result(&mut conn)?)
+    }
     pub fn create_event(ctx: &Context, keyword_id: i32, event: NewEvent) -> FieldResult<Event> {
         log::trace!("graphql mutation received: createEvent");
         Ok(event.save_into_db(&ctx.pool, keyword_id)?)

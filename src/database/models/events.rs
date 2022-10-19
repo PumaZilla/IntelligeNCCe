@@ -66,7 +66,6 @@ impl Model {
 #[derive(GraphQLInputObject, Insertable)]
 #[graphql(name = "NewEvent")]
 #[diesel(table_name = events)]
-
 pub struct NewModel {
     pub template: String,
     pub type_: Type,

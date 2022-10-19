@@ -1,4 +1,13 @@
 diesel::table! {
+    secrets (id) {
+        id -> Integer,
+        name -> Varchar,
+        value -> Varchar,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     events (id) {
         id -> Integer,
         template -> Varchar,
@@ -11,7 +20,6 @@ diesel::table! {
 }
 
 diesel::table! {
-
     keywords (id) {
         id -> Integer,
         #[sql_name = "type"]

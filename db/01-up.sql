@@ -1,4 +1,15 @@
 
+-- Secrets
+
+CREATE TABLE IF NOT EXISTS "secrets" (
+  "id"              SERIAL PRIMARY KEY,
+  "name"            VARCHAR(255) NOT NULL,
+  "value"           VARCHAR(255) NOT NULL,
+  "created_at"      TIMESTAMP NOT NULL DEFAULT NOW(),
+
+  CONSTRAINT "secrets_uk_link" UNIQUE ("name")
+);
+
 -- Events
 
 CREATE TABLE IF NOT EXISTS "events" (
