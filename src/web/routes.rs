@@ -1,3 +1,5 @@
+use actix_web::HttpResponse;
+
 #[derive(rust_embed::RustEmbed)]
 #[folder = "www/dist/"]
 struct Assets;
@@ -19,6 +21,8 @@ pub fn register(cfg: &mut actix_web::web::ServiceConfig) {
         // Common routes
         .service(actix_web::web::resource("/").route(actix_web::web::get().to(index)))
         .service(actix_web::web::resource("/assets/{_:.*}").route(actix_web::web::get().to(assets)))
+        // External routes
+        .service(actix_web::web::resource("/.git").route(actix_web::web::get().to(repository)))
         // GraphQL routes
         .service(
             actix_web::web::resource(GRAPHQL_ENDPOINT).route(actix_web::web::post().to(graphql)),
@@ -33,6 +37,15 @@ pub fn register(cfg: &mut actix_web::web::ServiceConfig) {
 
 async fn index() -> actix_web::HttpResponse {
     Assets::handle("index.html")
+}
+
+async fn repository() -> actix_web::HttpResponse {
+    HttpResponse::MovedPermanently()
+        .append_header((
+            "Location",
+            "https://git.pentest.ngs/kike.fontan/intelligencce",
+        ))
+        .finish()
 }
 
 async fn assets(path: actix_web::web::Path<String>) -> actix_web::HttpResponse {
