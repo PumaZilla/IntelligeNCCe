@@ -12,7 +12,6 @@ export default {
 		return {
 			rendered: true,
 			searchTerm: ref(''),
-			filterType: ref(''),
 			events: reactive([]),
 			eventsTable: reactive({
 				isLoading: true,
@@ -24,6 +23,9 @@ export default {
 						sortable: true,
 						isKey: true,
 						columnStyles: { "text-align": "center" },
+						display: function(row) {
+							return '<a href="/event/' + row[this.field] + '">#' + row[this.field] + '</a>'; // FIXME: Sanitize this
+						}
 					},
 					{
 						label: "Timestamp",
@@ -57,22 +59,16 @@ export default {
 						field: "source",
 						width: "13%",
 						sortable: true,
+						columnClasses: ['truncated'],
 						display: function (row) {
-							let n = 80;
-							if (typeof row[this.field] !== 'string') return row[this.field];
-							let s = row[this.field].substr(0, n - 1) + (row[this.field].length > n ? '...' : '')
-							return '<a href="' + row[this.field] + '">' + s + '</a>'; // FIXME: Sanitize this
+							return '<a href="' + row[this.field] + '">' + row[this.field] + '</a>'; // FIXME: Sanitize this
 						},
 					},
 					{
 						label: "Data",
 						field: "data",
 						width: "50%",
-						display: function (row) {
-							let n = 110;
-							if (typeof row[this.field] !== 'string') return row[this.field];
-							return row[this.field].substr(0, n - 1) + (row[this.field].length > n ? '...' : '') // FIXME: Sanitize this
-						},
+						columnClasses: ['truncated'],
 					}
 				],
 				rows: [],
@@ -96,14 +92,33 @@ export default {
 	},
 	methods: {
 		filterEvents() {
+			let events = this.events;
 			let search = this.searchTerm.toLowerCase();
-			this.eventsTable.rows = this.events.filter(function (event) {
-				return event.template.toLowerCase().includes(search) || event.source.toLowerCase().includes(search) || event.data.toLowerCase().includes(search);
+			// create the dorks
+			let dorks = search.split(' ').filter(d => d.length > 0);
+			// filter the events
+			dorks.forEach(dork => {
+				let dsl = dork.split(':',2);
+				if (dsl.length == 2) {
+					let field = dsl[0];
+					let value = dsl[1];
+					events = events.filter(event => {
+						switch(field) {
+							case "id":
+								return event[field] == value;
+							case "timestamp":
+								return new Date(event[field] * 1000).toLocaleString('es-ES').includes(value);
+							default:
+								return event[field].toLowerCase().includes(value);
+						}
+					});
+				} else {
+					events = events.filter(e => e.source.toLowerCase().includes(dork) || e.data.toLowerCase().includes(dork));
+				}
 			});
+			// udpate the table rows
+			this.eventsTable.rows = events;
 			this.eventsTable.totalRecordCount = this.eventsTable.rows.length;
-		},
-		getTypes(elements) {
-			return [...new Set(['ALL'].concat(elements.map(k => k.type)))];
 		},
 	}
 }
@@ -156,6 +171,14 @@ export default {
 		</card>
 	</div>
 </template>
-<style scoped>
-
+<style>
+.truncated {
+	max-width: 0;
+}
+.truncated * {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: fit-content;
+}
 </style>
