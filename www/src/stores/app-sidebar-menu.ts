@@ -5,8 +5,8 @@ export const useAppSidebarMenuStore = defineStore({
   state: () => {
     return [
       {
-        text: "Navigation",
         is_header: true,
+        text: "Navigation",
       },
       {
         url: "/",
@@ -14,13 +14,13 @@ export const useAppSidebarMenuStore = defineStore({
         text: "Dashboard",
       },
       {
-        text: "Resources",
-        is_header: true,
+        url: "/explore",
+        icon: "far fa-compass",
+        text: "Explore",
       },
       {
-        url: "@/i_understand_that_this_is_against_security",
-        icon: "fa fa-code-branch",
-        text: "GraphQL",
+        is_header: true,
+        text: "Resources",
       },
       {
         url: "@https://git.pentest.ngs/kike.fontan/intelligencce",

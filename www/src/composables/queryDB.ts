@@ -1,6 +1,6 @@
-const API_ENDPOINT = "/graphql";
+const API_ENDPOINT: string = "/graphql";
 
-export default function queryDB(query, cb) {
+export default async function queryDB(query: string, cb: Function): Promise<{}> {
   return fetch(API_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -12,7 +12,7 @@ export default function queryDB(query, cb) {
         console.log(res.errors);
         return {};
       }
-      cb(res.data);
+      return cb(res.data);
     })
     .catch((err) => console.log(err));
 }

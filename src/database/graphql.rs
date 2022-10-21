@@ -35,6 +35,10 @@ impl Query {
         log::trace!("graphql query received: apiVersion");
         "1"
     }
+    pub fn app_version() -> &'static str {
+        log::trace!("graphql query received: appVersion");
+        std::env!("CARGO_PKG_VERSION")
+    }
 
     pub fn secrets(ctx: &Context) -> FieldResult<Vec<Secret>> {
         log::trace!("graphql query received: secrets");

@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useAppSidebarMenuStore } from "@/stores/app-sidebar-menu";
 import { useAppOptionStore } from "@/stores/app-option";
-import { onMounted } from "vue";
-import SidebarNav from "@/components/app/SidebarNav.vue";
+import { onMounted, computed } from "vue";
+
+import LinkSidebar from "@/components/LinkSidebar.vue";
 
 const appSidebarMenu = useAppSidebarMenuStore();
 const appOption = useAppOptionStore();
@@ -11,7 +12,11 @@ function appSidebarMobileToggled() {
   appOption.appSidebarMobileToggled = !appOption.appSidebarMobileToggled;
 }
 
+let version: string = '0.0.0';
+
 onMounted(() => {
+  //console.log(queryDB('{appVersion}',(data: any) => data.appVersion));
+
   const handleSidebarMenuToggle = function (menus) {
     menus.map(function (menu) {
       menu.onclick = function (e) {
@@ -69,19 +74,20 @@ onMounted(() => {
 <template>
   <div id="sidebar" class="app-sidebar">
     <perfect-scrollbar class="app-sidebar-content">
+
+      <!-- Navigation -->
       <div class="menu">
         <template v-for="menu in appSidebarMenu">
           <div class="menu-header" v-if="menu.is_header">{{ menu.text }}</div>
-          <div class="menu-divider" v-else-if="menu.is_divider"></div>
-          <template v-else>
-            <sidebar-nav v-if="menu.text" v-bind:menu="menu"></sidebar-nav>
-          </template>
+          <LinkSidebar v-else :text="menu.text || ''" :icon="menu.icon" :url="menu.url || '/'"></LinkSidebar> <!-- FIXME: LinkSidebar -->
         </template>
       </div>
+
+      <!-- Footer button -->
       <div class="p-3 px-4 mt-auto">
-        <a href="#" target="_blank" class="btn d-block btn-outline-theme">
+        <a class="btn d-block btn-outline-theme">
           <i class="fa fa-code-branch me-2 ms-n2 opacity-5"></i>
-          Repository
+          Version: {{ version }}
         </a>
       </div>
     </perfect-scrollbar>
