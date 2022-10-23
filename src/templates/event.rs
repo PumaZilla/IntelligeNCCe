@@ -1,7 +1,7 @@
 #[derive(Debug, Clone)]
 pub struct Event {
     pub template: String,
-    pub type_: String,
+    pub type_: EventType,
     pub source: String,
     pub data: String,
 }
@@ -9,7 +9,7 @@ impl Default for Event {
     fn default() -> Self {
         Self {
             template: "-- Unknown template".to_string(),
-            type_: "-- Unknown type".to_string(),
+            type_: EventType::Unknown,
             source: "-- Unknown source".to_string(),
             data: "-- No data".to_string(),
         }
@@ -43,7 +43,7 @@ impl Event {
         // use crate::database::models::EventType;
         crate::database::models::NewEvent {
             template: self.template,
-            type_: self.type_.into(),
+            type_: self.type_.to_string().into(),
             source: self.source,
             data: self.data,
         }
@@ -69,24 +69,42 @@ impl Event {
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "lowercase")]
 pub enum EventType {
+    Unknown,
+    Paste,
+    Blacklist,
+
+    IP,
     Domain,
+    URL,
     Email,
-    Raw,
 }
 impl EventType {
+    // FIXME: This is used for something?
     pub fn _iter() -> std::slice::Iter<'static, Self> {
-        static TYPES: [EventType; 3] = [EventType::Domain, EventType::Email, EventType::Raw];
+        static TYPES: [EventType; 7] = [
+            EventType::Unknown,
+            EventType::Paste,
+            EventType::Blacklist,
+            EventType::IP,
+            EventType::Domain,
+            EventType::URL,
+            EventType::Email,
+        ];
         TYPES.iter()
     }
 }
 impl std::fmt::Display for EventType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            EventType::Domain => write!(f, "domain"),
-            EventType::Email => write!(f, "email"),
-            EventType::Raw => write!(f, "raw"),
+            Self::Unknown => write!(f, "raw"),
+            Self::Paste => write!(f, "paste"),
+            Self::Blacklist => write!(f, "blacklist"),
+            Self::IP => write!(f, "ip"),
+            Self::Domain => write!(f, "domain"),
+            Self::URL => write!(f, "url"),
+            Self::Email => write!(f, "email"),
         }
     }
 }

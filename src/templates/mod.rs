@@ -2,7 +2,7 @@ mod action;
 mod event;
 mod step;
 
-use crate::{database::models::EventType,error::{Error, Result}};
+use crate::error::{Error, Result};
 
 const DEFAULT_SLEEP_TICK: u64 = 2;
 const DEFAULT_KEY: &str = " ::default";
@@ -58,6 +58,7 @@ impl Templates {
 #[serde(rename_all = "snake_case")]
 pub struct Template {
     pub id: String,
+    pub generate: event::EventType,
     pub every: String,
     pub steps: Vec<step::TemplateStep>,
 }
@@ -123,21 +124,32 @@ impl Template {
                     Err(e) => log::error!("error fetching keywords :: {}", e),
                 };
                 // check the raw results
-                for result in results {
+                for mut result in results {
                     // check the keywords
-                    let type_: EventType = result.type_.as_str().into();
-                    if type_ == EventType::default() {
-                        let ids = result.check_content(&keywords);
-                        if ids.len() > 0 {
-                            // update the result
-                            let model = result.into_model();
-                            ids.iter().for_each(|id| {
-                                match model.save_into_db(&pool,*id) {
-                                    Ok(ev) => log::info!("new event found for keyword #{}: {}", id, ev.source),
-                                    Err(e) => log::error!("error saving result for keyword #{} :: {}", id, e),
-                                };
-                            });
-                        }
+                    result.type_ = self.generate.clone();
+                    let ids = result.check_content(&keywords);
+                    if ids.len() > 0 {
+                        // save the checked event
+                        let mut model = result.into_model();
+                        ids.iter().for_each(|id| {
+                            if model.type_ == crate::database::models::EventType::Info {
+                                log::debug!(
+                                    "new keyword \"{}\" related to keyword #{}",
+                                    model.data,
+                                    id
+                                );
+                                // TODO: Add a new keyword
+                                model.data = format!("New keyword found:  {}", model.data);
+                            }
+                            match model.save_into_db(&pool, *id) {
+                                Ok(ev) => {
+                                    log::info!("new event found for keyword #{} at {}", id, ev.source)
+                                }
+                                Err(e) => {
+                                    log::error!("error saving result for keyword #{} :: {}", id, e)
+                                }
+                            };
+                        });
                     }
                 }
             }

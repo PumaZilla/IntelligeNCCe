@@ -3,7 +3,10 @@ meta:
   name: KPaste watcher
   description: |
     Monitorize KPaste (kpaste.net) for new pastes.
+
+generate: paste
 every: 1d
+
 steps:
   - name: getting latest pastes from kpaste...
     action: fetch

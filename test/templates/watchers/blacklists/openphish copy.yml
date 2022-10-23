@@ -1,0 +1,17 @@
+---
+id: openphish
+meta:
+  name: OpenPhish watcher
+  description: |
+    Monitorize OpenPhish (openphish.com) for new blacklisted URLs.
+
+generate: blacklist
+every: 1d
+
+steps:
+  - name: getting openphish feed...
+    action: fetch
+    options:
+      url: https://openphish.com/feed.txt
+  - name: extracting openphish URLs...
+    action: lines

@@ -4,7 +4,10 @@ meta:
   name: Pastebin watcher
   description: |
     Monitorize Pastebin (pastebin.com) for new pastes.
+
+generate: paste
 every: 6h
+
 steps:
   - name: getting latest pastes from pastebin...
     action: fetch

@@ -4,7 +4,10 @@ meta:
   name: Poland Pastebin watcher
   description: |
     Monitorize Poland Pastebin (pastebin.pl) for new pastes.
+
+generate: paste
 every: 1h
+
 steps:
   - name: getting latest pastes from poland pastebin...
     action: fetch

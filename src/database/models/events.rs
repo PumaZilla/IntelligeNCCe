@@ -123,19 +123,25 @@ impl NewModel {
 #[diesel(sql_type = Integer)]
 pub enum Type {
     #[default]
+    Info,
     Paste,
+    Blacklist,
 }
 impl From<i32> for Type {
     fn from(value: i32) -> Self {
         match value {
-            _ => Self::Paste,
+            1 => Self::Paste,
+            2 => Self::Blacklist,
+            _ => Self::Info,
         }
     }
 }
 impl From<&str> for Type {
     fn from(value: &str) -> Self {
-        match value {
-            _ => Self::Paste,
+        match value.to_lowercase().as_str() {
+            "paste" => Self::Paste,
+            "blacklist" => Self::Blacklist,
+            _ => Self::Info,
         }
     }
 }
@@ -151,7 +157,9 @@ where
 {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, DB>) -> Serialized {
         match self {
-            _ => 0.to_sql(out),
+            Self::Info => 0.to_sql(out),
+            Self::Paste => 1.to_sql(out),
+            Self::Blacklist => 2.to_sql(out),
         }
     }
 }
@@ -163,7 +171,7 @@ where
     fn from_sql(value: RawValue<DB>) -> Deserialized<Self> {
         let x = i32::from_sql(value)?;
         match x {
-            0 => Ok(Self::Paste),
+            0..=1 => Ok(x.into()),
             _ => Err(format!("unrecognized enum variant: {}", x).into()),
         }
     }

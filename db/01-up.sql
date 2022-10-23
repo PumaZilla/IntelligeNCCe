@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS "events" (
 
   CONSTRAINT "events_pk" PRIMARY KEY ("id"),
   CONSTRAINT "events_uk_link" UNIQUE ("source","data"),
-  CONSTRAINT "events_ck_type" CHECK ("type" >= 0 AND "type" <= 0)
+  CONSTRAINT "events_ck_type" CHECK ("type" >= 0 AND "type" <= 2)
 
 );
 

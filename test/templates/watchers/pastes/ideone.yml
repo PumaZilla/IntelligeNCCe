@@ -4,7 +4,10 @@ meta:
   name: Ideone watcher
   description: |
     Monitorize Ideone (ideone.com) for new pastes.
-every: 2h
+
+generate: paste
+every: 1h
+
 steps:
   - name: getting latest pastes from ideone...
     action: fetch

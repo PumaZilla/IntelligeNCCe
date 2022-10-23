@@ -1,13 +1,13 @@
 use crate::error::{Error, Result};
 
 #[derive(Debug, Clone, serde::Deserialize)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "lowercase")]
 pub enum TemplateAction {
     Debug,
     Extract,
     Fetch,
-    #[serde(rename = "html")]
     HTML,
+    Lines,
 }
 impl std::fmt::Display for TemplateAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -19,6 +19,7 @@ impl std::fmt::Display for TemplateAction {
                 Self::Extract => "extracting data from previous step",
                 Self::Fetch => "sending a request",
                 Self::HTML => "parsing the HTML",
+                Self::Lines => "splitting the data into lines",
             }
         )
     }
@@ -224,6 +225,11 @@ impl TemplateAction {
                     super::event::Event::data_from(context.clone(), &data)
                 }).filter(|event| !event.data.is_empty()).collect::<Vec<_>>();
                 // return the data
+                (events, Vec::new())
+            }
+            Self::Lines => {
+                let ctx = context.ok_or(Error::TemplateActionNoContextError(self.to_string()))?;
+                let events = ctx.data.lines().filter(|line| !line.trim().is_empty()).map(|line| super::event::Event::data_from(ctx.clone(), line)).collect::<Vec<_>>();
                 (events, Vec::new())
             }
         })

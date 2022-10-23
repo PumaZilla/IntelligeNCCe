@@ -1,0 +1,17 @@
+---
+id: phishfindr
+meta:
+  name: PhishFindR watcher
+  description: |
+    Monitorize PhishFindR (@PhishFindR) for new blacklisted URLs.
+
+generate: blacklist
+every: 1d
+
+steps:
+  - name: getting phishfindr feed...
+    action: fetch
+    options:
+      url: https://raw.githubusercontent.com/mitchellkrogza/Phishing.Database/master/phishing-links-ACTIVE.txt
+  - name: extracting phishfindr URLs...
+    action: lines

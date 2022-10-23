@@ -1,0 +1,31 @@
+---
+id: gist
+meta:
+  name: GitHub Gist watcher
+  description: |
+    Monitorize Gists (gist.github.com) for new pastes.
+
+generate: paste
+every: 5m
+
+steps:
+  - name: getting latest pastes from gist...
+    action: fetch
+    options:
+      url: https://gist.github.com/discover
+  - name: extracting gist projects...
+    action: html
+    options:
+      query: .link-overlay
+      attribute: href
+  - name: inspecting files from gist...
+    action: fetch
+  - name: extracting gist ids...
+    action: html
+    options:
+      query: .file-actions a
+      attribute: href
+  - name: fetching raw gists...
+    action: fetch
+    options:
+      url: https://gist.githubusercontent.com{content}
