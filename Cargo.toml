@@ -5,25 +5,28 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[profile]
+dev = { opt-level = 0, codegen-units = 256 }
+release = { opt-level = 3,  codegen-units = 16 }
+
 [dependencies]
-actix-web = { version = "4.2.1" }                                       # Web server
-clap = { version = "4.0.2", features = ["derive","env"] }               # Command line arguments
-chrono = { version = "0.4.22", features = ["serde"] }                   # Date and time
-diesel = { version = "2.0.0", features = ["chrono","postgres","r2d2"] } # Database ORM
-dirs = { version = "4.0.0" }                                            # User directories
-dotenv = { version = "0.15.0" }                                         # Environment variables
-futures = { version = "0.3.18" }                                        # Async
-humantime = { version = "2.1.0" }                                       # Human-readable times
-juniper = { version = "0.15.10" }                                       # GraphQL server
-log = { version = "0.4.17" }                                            # Logging
-log4rs = { version = "1.1.1" }                                          # Logging wrapper
-mime_guess = { version = "2.0.4" }                                      # Mime types
-redis = { version = "0.21.6", features = ["tokio-comp"] }               # Redis client
-regex = { version = "1.6.0" }                                           # Regular expressions
-reqwest = { version = "0.11.11", features = ["blocking"] }              # HTTP requests
-rust-embed = { version = "6.4.1" }                                      # Embed static files
-scraper = { version = "0.13.0" }                                        # HTML parsing
-serde = { version = "1.0.145", features = ["derive"] }                  # (De)serializer
-serde_json = { version = "1.0.85" }                                     # JSON (de)serialization
-serde_yaml = { version = "0.9.10" }                                     # YAML (de)serialization
-tokio = { version = "1.21.2", features = ["full"] }                     # Async runtime
+actix-web = { version = "4.2.1" }                                           # Web server
+clap = { version = "4.0.2", features = ["derive","env"] }                   # Command line arguments
+chrono = { version = "0.4.22", features = ["serde"] }                       # Date and time
+diesel = { version = "2.0.0", features = ["chrono","postgres","r2d2"] }     # Database ORM
+dirs = { version = "4.0.0" }                                                # User directories
+dotenv = { version = "0.15.0" }                                             # Environment variables
+futures = { version = "0.3.18" }                                            # Async
+humantime = { version = "2.1.0" }                                           # Human-readable times
+juniper = { version = "0.15.10" }                                           # GraphQL server
+log = { version = "0.4.17" }                                                # Logging
+log4rs = { version = "1.1.1" }                                              # Logging wrapper
+mime_guess = { version = "2.0.4" }                                          # Mime types
+regex = { version = "1.6.0" }                                               # Regular expressions
+reqwest = { version = "0.11.11", features = ["blocking"] }                  # HTTP requests
+rust-embed = { version = "6.4.1", features = ["interpolate-folder-path"] }  # Embed static files
+scraper = { version = "0.13.0" }                                            # HTML parsing
+serde = { version = "1.0.145", features = ["derive"] }                      # (De)serializer
+serde_json = { version = "1.0.85" }                                         # JSON (de)serialization
+serde_yaml = { version = "0.9.10" }                                         # YAML (de)serialization
+tokio = { version = "1.21.2", features = ["full"] }                         # Async runtime

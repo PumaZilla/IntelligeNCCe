@@ -1,7 +1,7 @@
 use actix_web::HttpResponse;
 
 #[derive(rust_embed::RustEmbed)]
-#[folder = "www/dist/"]
+#[folder = "$CARGO_MANIFEST_DIR/www/dist/"]
 struct Assets;
 impl Assets {
     fn handle(path: &str) -> actix_web::HttpResponse {
