@@ -3,10 +3,11 @@ query Introspection {__schema{queryType{name}mutationType{name}subscriptionType{
 query Builtins {
   health
   apiVersion
+  appVersion
 }
 
 mutation SecretC {
-  paste: createSecret(secret: {name: "SHODAN", value: "test"}) {
+  secret: createSecret(secret: {name: "SHODAN", value: "test"}) {
     id
     name
     value
@@ -42,6 +43,22 @@ mutation EventC {
 }
 
 query EventR {
+  firstEvent: event(id: 1) {
+    id
+    template
+    type
+    source
+    data
+    createdAt
+    keywords {
+      id
+      type
+      value
+      timestamp: createdAt
+      lastConsulted
+    }
+  }
+  
   events: events {
     id
     template
@@ -60,7 +77,7 @@ query EventR {
 }
 
 mutation KeywordC {
-  domain: createKeyword(keyword: {type: DOMAIN, value: "nttdata.com"}) {
+  domain: createKeyword(keyword: {type: TEXT, value: "func"}) {
     id
     type
     value
@@ -78,7 +95,23 @@ mutation KeywordC {
 }
 
 query KeywordR {
-  keywords {
+  firstKeyword: keyword(id: 1) {
+    id
+    type
+    value
+    createdAt
+    lastConsulted
+    events {
+      id
+      template
+      type
+      source
+      data
+      createdAt
+    }
+  }
+
+  keywords: keywords {
     id
     type
     value

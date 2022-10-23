@@ -1,5 +1,5 @@
 use super::models::{Secret, Event, Keyword, NewSecret, NewEvent, NewKeyword};
-use diesel::RunQueryDsl;
+use diesel::{RunQueryDsl, QueryDsl, ExpressionMethods};
 use juniper::{graphql_object, EmptySubscription, FieldResult, RootNode};
 use std::sync::Arc;
 
@@ -47,6 +47,16 @@ impl Query {
         Ok(secrets::table.load::<Secret>(&mut conn)?)
     }
 
+    pub fn event(ctx: &Context, id: i32) -> FieldResult<Event> {
+        log::trace!("graphql query received: event");
+        use super::schema::events;
+        let mut conn = ctx.pool.get()?;
+        let mut event = events::table
+            .filter(events::columns::id.eq(id))
+            .first::<Event>(&mut conn)?;
+        event.get_keywords(&ctx.pool)?;
+        Ok(event)
+    }
     pub fn events(ctx: &Context) -> FieldResult<Vec<Event>> {
         log::trace!("graphql query received: events");
         use super::schema::events;
@@ -59,7 +69,17 @@ impl Query {
         });
         Ok(events)
     }
-
+    
+    pub fn keyword(ctx: &Context, id: i32) -> FieldResult<Keyword> {
+        log::trace!("graphql query received: keyword");
+        use super::schema::keywords;
+        let mut conn = ctx.pool.get()?;
+        let mut keyword = keywords::table
+            .filter(keywords::columns::id.eq(id))
+            .first::<Keyword>(&mut conn)?;
+        keyword.get_events(&ctx.pool)?;
+        Ok(keyword)
+    }
     pub fn keywords(ctx: &Context) -> FieldResult<Vec<Keyword>> {
         log::trace!("graphql query received: keywords");
         let mut keywords = Keyword::get_all(&ctx.pool)?;
@@ -70,18 +90,6 @@ impl Query {
         });
         Ok(keywords)
     }
-
-    /*
-    pub fn event(ctx: &Context) -> FieldResult<Vec<Event>> {
-        log::trace!("graphql query received: event");
-        Event::read(ctx).await
-    }
-
-    pub fn keyword(ctx: &Context) -> FieldResult<Vec<Keyword>> {
-        log::trace!("graphql query received: keyword");
-        Keyword::read(ctx).await
-    }
-    */
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //
