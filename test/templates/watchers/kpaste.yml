@@ -1,4 +1,3 @@
----
 id: kpaste
 meta:
   name: KPaste watcher
@@ -6,16 +5,16 @@ meta:
     Monitorize KPaste (kpaste.net) for new pastes.
 every: 1d
 steps:
-  - name: getting recent pastes...
+  - name: getting latest pastes from kpaste...
     action: fetch
     options:
       url: https://kpaste.net/
-  - name: extracting ids from hrefs
-    action: extract
+  - name: extracting kpaste ids...
+    action: html
     options:
-      query: href="/([a-f0-9]+?)"
-      group: 1
-  - name: fetching the raw paste
+      query: .p a[title]
+      attribute: href
+  - name: fetching raw kpastes...
     action: fetch
     options:
-      url: https://kpaste.net/{content}?raw
+      url: https://kpaste.net{content}?raw

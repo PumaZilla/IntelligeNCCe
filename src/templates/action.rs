@@ -6,6 +6,8 @@ pub enum TemplateAction {
     Debug,
     Extract,
     Fetch,
+    #[serde(rename = "html")]
+    HTML,
 }
 impl std::fmt::Display for TemplateAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -16,6 +18,7 @@ impl std::fmt::Display for TemplateAction {
                 Self::Debug => "debugging the information",
                 Self::Extract => "extracting data from previous step",
                 Self::Fetch => "sending a request",
+                Self::HTML => "parsing the HTML",
             }
         )
     }
@@ -177,6 +180,51 @@ impl TemplateAction {
                     )],
                     Vec::new(),
                 )
+            }
+            Self::HTML => {
+                // check the values
+                let options =
+                    options.ok_or(Error::TemplateActionNoOptionsError(self.to_string()))?;
+                let context =
+                    context.ok_or(Error::TemplateActionNoContextError(self.to_string()))?;
+                let query = options
+                    .get("query")
+                    .and_then(|query| scraper::Selector::parse(query).ok())
+                    .ok_or(Error::TemplateActionNoOptionError(
+                        self.to_string(),
+                        "query".to_string(),
+                    ))?;
+                let is_fragment: bool = options
+                    .get("fragment")
+                    .unwrap_or(&"false".to_string())
+                    .parse()
+                    .map_err(|e| {
+                        Error::TemplateActionExecError(
+                            self.to_string(),
+                            format!("cannot parse fragment as boolean ({})", e),
+                        )
+                    })?;
+                let attribute = options
+                    .get("attribute")
+                    .and_then(|attr| if attr.is_empty() { None } else { Some(attr.to_lowercase()) })
+                    .unwrap_or("text".to_string());
+                // parse the HTML
+                let document = match is_fragment {
+                    true => scraper::Html::parse_fragment(&context.data),
+                    false => scraper::Html::parse_document(&context.data),
+                };
+                // extract the data
+                let events = document.select(&query).map(|element| {
+                    let data = match attribute.as_str() {
+                        "text" => element.text().collect::<Vec<_>>().join(""),
+                        "html" => element.html(),
+                        "inner_html" => element.inner_html(),
+                        _ => element.value().attr(&attribute).unwrap_or("").to_string(),
+                    };
+                    super::event::Event::data_from(context.clone(), &data)
+                }).filter(|event| !event.data.is_empty()).collect::<Vec<_>>();
+                // return the data
+                (events, Vec::new())
             }
         })
     }

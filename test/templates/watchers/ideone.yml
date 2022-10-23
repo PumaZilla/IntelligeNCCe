@@ -6,16 +6,16 @@ meta:
     Monitorize Ideone (ideone.com) for new pastes.
 every: 2h
 steps:
-  - name: getting recent pastes...
+  - name: getting latest pastes from ideone...
     action: fetch
     options:
       url: https://ideone.com/recent
-  - name: extracting ids from hrefs
-    action: extract
+  - name: extracting ideone ids...
+    action: html
     options:
-      query: href="/([a-zA-Z0-9]+?)">#
-      group: 1
-  - name: fetching the raw paste
+      query: .source-view a
+      attribute: href
+  - name: fetching raw ideone pastes...
     action: fetch
     options:
-      url: https://ideone.com/plain/{content}
+      url: https://ideone.com/plain{content}

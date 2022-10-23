@@ -6,16 +6,16 @@ meta:
     Monitorize Poland Pastebin (pastebin.pl) for new pastes.
 every: 1h
 steps:
-  - name: getting recent pastes...
+  - name: getting latest pastes from poland pastebin...
     action: fetch
     options:
       url: https://pastebin.pl/lists
-  - name: extracting ids from hrefs
+  - name: extracting poland pastebin ids...
     action: extract
     options:
-      query: href="https://pastebin.pl/view/([a-fA-F0-9]+?)"
+      query: https://pastebin.pl/view/([a-fA-F0-9]+?)
       group: 1
-  - name: fetching the raw paste
+  - name: fetching raw poland pastebins...
     action: fetch
     options:
       url: https://pastebin.pl/view/raw/{content}
