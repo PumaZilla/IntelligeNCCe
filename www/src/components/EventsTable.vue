@@ -21,7 +21,7 @@ const columns = [
         display: (row: any) => linkify(`/event/${row.id}`, `#${row.id}`),
     },
     {
-        label: "Timestamp", field: "timestamp", width: "10%", sortable: true,
+        label: "Timestamp", field: "timestamp", width: "11%", sortable: true,
         display: (row: any) => timestampify(row.timestamp),
     },
     {
