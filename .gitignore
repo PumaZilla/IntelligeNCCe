@@ -1,1 +1,10 @@
+# Distribution files
+/**/dist/
 /**/target/
+
+# Dependencies
+/**/node_modules/
+
+# VSCode files
+/**/.vscode/
+!/**/.vscode/extensions.json

@@ -6,11 +6,12 @@ import { useAppVariableStore } from "@/stores/app-variable";
 import Title from "@/components/Title.vue";
 import EventsTab from "@/components/EventsTab.vue";
 import KeywordsTab from "@/components/KeywordsTab.vue";
+import KeywordsModals from "@/components/KeywordsModals.vue";
 
 const appVariable = useAppVariableStore();
 
 export default {
-  components: { Title, EventsTab, KeywordsTab },
+  components: { Title, EventsTab, KeywordsTab, KeywordsModals },
   data() {
     return {
       rendered: true,
@@ -80,6 +81,8 @@ export default {
         <KeywordsTab id="keywords" />
       </div>
     </card>
+
+    <KeywordsModals />
   </div>
 </template>
 <style>

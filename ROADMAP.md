@@ -6,12 +6,12 @@
     - [ ] Handle signals (e.g: `SIGINT`) [[idea](https://www.reddit.com/r/rust/comments/pv8ja8/how_to_handle_ctrlc_when_having_multiple_threads/)]
     - [ ] Default async runtime (`tokio` or `std`)
     - [ ] Rust documentation
-    - [ ] Error handling
+    - [x] Error handling
 - Web server milestones
     - [x] Bind the server
-    - [ ] Static files
-    - [ ] API calls
-    - [ ] [Binary embedded](https://github.com/pyrossh/rust-embed)
+    - [x] Static files
+    - [x] API calls
+    - [x] [Binary embedded](https://github.com/pyrossh/rust-embed)
 - Database milestones
     - [ ] Hash as `event` ID
     - [ ] Cached operations
@@ -19,7 +19,7 @@
 - Templates milestones
     - [x] Parsed
     - [x] Executed
-    - [ ] Compared
+    - [x] Compared
     - [x] Stored
 - Connections milestones
     - [x] Connect `GraphQL`
@@ -29,6 +29,6 @@
     - [ ] Read Me
     - [ ] Reset commit history before release
 - Other milestones
-    - [ ] Merge `www` project with the parent directory
+    - [x] Merge `www` project with the parent directory
     - [ ] Docker image
-    - [ ] Auto-created databases using docker
+    - [x] Auto-created databases using docker

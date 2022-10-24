@@ -18,7 +18,7 @@ export interface Props {
 defineProps<Props>();
 
 const modal = {
-    link: "#",
+    link: "#add_keyword",
     text: "Add",
     icon: "fas fa-plus",
 };
