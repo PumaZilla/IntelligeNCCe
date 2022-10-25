@@ -21,8 +21,8 @@ pub fn register(cfg: &mut actix_web::web::ServiceConfig) {
         // Common routes
         .service(actix_web::web::resource("/").route(actix_web::web::get().to(index)))
         .service(actix_web::web::resource("/assets/{_:.*}").route(actix_web::web::get().to(assets)))
-        // External routes
-        .service(actix_web::web::resource("/.git").route(actix_web::web::get().to(repository)))
+        // Raw view
+        .service(actix_web::web::resource("/raw/{id}").route(actix_web::web::get().to(raw)))
         // GraphQL routes
         .service(
             actix_web::web::resource(GRAPHQL_ENDPOINT).route(actix_web::web::post().to(graphql)),
@@ -39,17 +39,25 @@ async fn index() -> actix_web::HttpResponse {
     Assets::handle("index.html")
 }
 
-async fn repository() -> actix_web::HttpResponse {
-    HttpResponse::MovedPermanently()
-        .append_header((
-            "Location",
-            "https://git.pentest.ngs/kike.fontan/intelligencce",
-        ))
-        .finish()
-}
-
 async fn assets(path: actix_web::web::Path<String>) -> actix_web::HttpResponse {
     Assets::handle(["assets", path.as_str()].join("/").as_str())
+}
+
+async fn raw(
+    req: actix_web::HttpRequest,
+    id: actix_web::web::Path<i32>,
+    db: actix_web::web::Data<std::sync::Arc<crate::database::DBConnection>>,
+) -> actix_web::HttpResponse {
+    log::trace!(
+        "new raw event (#{}) request received from {}.", id,
+        req.peer_addr()
+            .map(|x| x.to_string())
+            .unwrap_or("someone".to_string())
+    );
+    match crate::database::models::Event::raw(&db.get_ref().clone(), id.into_inner()) {
+        Ok(data) => HttpResponse::Ok().content_type("text/plain ").body(data),
+        Err(_) => HttpResponse::NotFound().finish()
+    }
 }
 
 // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // // //

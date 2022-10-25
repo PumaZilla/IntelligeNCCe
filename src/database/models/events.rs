@@ -47,6 +47,17 @@ impl Queryable<events::SqlType, Pg> for Model {
     }
 }
 impl Model {
+    pub fn raw(pool: &DBConnection, id: i32) -> Result<String> {
+        let mut conn = pool
+            .get()
+            .map_err(|e| Error::DatabasePoolError(e.to_string()))?;
+        Ok(events::table
+            .filter(events::columns::id.eq(id))
+            .select(events::columns::data)
+            .first::<String>(&mut conn)
+            .map_err(|e| Error::DatabaseExecutionError(e.to_string()))?)
+    }
+
     pub fn get_keywords(&mut self, pool: &DBConnection) -> Result<()> {
         let mut conn = pool
             .get()
