@@ -6,7 +6,7 @@ pub enum TemplateAction {
     Debug,
     Extract,
     Fetch,
-    HTML,
+    Selector,
     Lines,
 }
 impl std::fmt::Display for TemplateAction {
@@ -18,7 +18,7 @@ impl std::fmt::Display for TemplateAction {
                 Self::Debug => "debugging the information",
                 Self::Extract => "extracting data from previous step",
                 Self::Fetch => "sending a request",
-                Self::HTML => "parsing the HTML",
+                Self::Selector => "parsing the Selector",
                 Self::Lines => "splitting the data into lines",
             }
         )
@@ -182,7 +182,7 @@ impl TemplateAction {
                     Vec::new(),
                 )
             }
-            Self::HTML => {
+            Self::Selector => {
                 // check the values
                 let options =
                     options.ok_or(Error::TemplateActionNoOptionsError(self.to_string()))?;

@@ -9,18 +9,68 @@ export const useAppSidebarMenuStore = defineStore({
         text: "Navigation",
       },
       {
-        url: "/",
-        icon: "bi bi-cpu",
+        url: "#",
+        icon: "fas fa-microchip",
         text: "Dashboard",
       },
       {
-        url: "/explore",
-        icon: "far fa-compass",
-        text: "Explore",
+        url: "#",
+        icon: "fas fa-handshake",
+        text: "Projects",
+      },
+      {
+        url: "/",
+        icon: "fas fa-compass",
+        text: "Explorer",
+      },
+      {
+        url: "#",
+        icon: "fas fa-paste",
+        text: "Designer",
+      },
+      
+      {
+        is_header: true,
+        text: "Administration",
+      },
+      {
+        url: "#",
+        icon: "fas fa-users",
+        text: "User Management",
+      },
+      {
+        url: "#",
+        icon: "fas fa-server",
+        text: "Server Status",
       },
       {
         is_header: true,
+        text: "Account",
+      },
+      {
+        url: "#",
+        icon: "fas fa-bell",
+        text: "Notifications",
+      },
+      {
+        url: "#",
+        icon: "fas fa-cog",
+        text: "Settings",
+      },
+      {
+        url: "#",
+        icon: "fas fa-bed",
+        text: "Logout",
+      },
+      
+      {
+        is_header: true,
         text: "Resources",
+      },
+      {
+        url: "#",
+        icon: "fas fa-book",
+        text: "Documentation",
       },
       {
         url: "@https://git.pentest.ngs/kike.fontan/intelligencce",
