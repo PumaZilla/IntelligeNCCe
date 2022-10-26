@@ -35,7 +35,8 @@ const save = (payload: Event) => {
         alert('Please enter a value for the keyword'); // FIXME: Error message in the modal
         return;
     }
-    const type = form?.querySelector('select')?.value ?? 'TEXT';
+    let type = form?.querySelector('select')?.value;
+    type = type ? type : 'TEXT';
     queryDB(`mutation{keyword:createKeyword(keyword:{value:"${value}",type:${type}}){id}}`, (data: any) => { // FIXME: INJECTION!
         if (data.keyword.id) {
             window.location.reload();

@@ -14,14 +14,14 @@ steps:
     options:
       url: https://gist.github.com/discover
   - name: extracting gist projects...
-    action: html
+    action: selector
     options:
       query: .link-overlay
       attribute: href
   - name: inspecting files from gist...
     action: fetch
   - name: extracting gist ids...
-    action: html
+    action: selector
     options:
       query: .file-actions a
       attribute: href

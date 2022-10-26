@@ -14,7 +14,7 @@ steps:
     options:
       url: https://pastebin.com/archive
   - name: extracting pastebin ids...
-    action: html
+    action: selector
     options:
       query: .-public + a
       attribute: href

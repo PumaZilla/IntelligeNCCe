@@ -19,7 +19,7 @@ defineProps<Props>();
 
 let events = ref([]);
 let filteredEvents = ref([]);
-onMounted(() => queryDB("query{events{id,timestamp:createdAt,template,type,source,data}}", (data: any) => {
+onMounted(() => queryDB("query{events{id,timestamp:createdAt,template,type,source,keywords{value}}}", (data: any) => {
     events.value = data.events
     filteredEvents.value = data.events
 }));

@@ -50,3 +50,7 @@ CREATE TABLE IF NOT EXISTS "events_keywords" (
   CONSTRAINT "events_keywords_fk_event" FOREIGN KEY ("event") REFERENCES "events" ("id") ON UPDATE CASCADE ON DELETE CASCADE,
   CONSTRAINT "events_keywords_fk_keyword" FOREIGN KEY ("keyword") REFERENCES "keywords" ("id") ON UPDATE CASCADE ON DELETE CASCADE
 );
+
+-- -- TTM
+
+INSERT INTO "keywords" ("type","value") VALUES (2,'nccgroup.com'), (0,'Instagram'), (1,'127.0.0.1'), (1,'0.0.0.0');

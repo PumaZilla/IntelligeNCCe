@@ -18,7 +18,7 @@ const timestampify = (unixtime: number) => `${new Date(unixtime * 1000).toLocale
 const columns = [
     {
         isKey: true, label: "ID", field: "id", width: "1%", sortable: true,
-        display: (row: any) => linkify(`/event/${row.id}`, `#${row.id}`),
+        display: (row: any) => linkify(`/raw/${row.id}`, `#${row.id}`),
     },
     {
         label: "Timestamp", field: "timestamp", width: "11%", sortable: true,
@@ -32,11 +32,12 @@ const columns = [
         label: "Template", field: "template", width: "8%", sortable: true,
     },
     {
-        label: "Source", field: "source", width: "13%", sortable: true, columnClasses: ["truncated"],
+        label: "Source", field: "source", width: "40%", sortable: true, columnClasses: ["truncated"],
         display: (row: any) => linkify(row.source),
     },
     {
-        label: "Data", field: "data", width: "50%", columnClasses: ["truncated"],
+        label: "Keywords", field: "source", width: "20%", sortable: true, columnClasses: ["truncated"],
+        display: (row: any) => row.keywords.map((e: any) => e.value).join(", "),
     },
 ]
 </script>

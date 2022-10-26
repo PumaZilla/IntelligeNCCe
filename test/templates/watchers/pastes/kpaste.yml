@@ -13,7 +13,7 @@ steps:
     options:
       url: https://kpaste.net/
   - name: extracting kpaste ids...
-    action: html
+    action: selector
     options:
       query: .p a[title]
       attribute: href

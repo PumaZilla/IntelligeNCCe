@@ -14,7 +14,7 @@ steps:
     options:
       url: https://ideone.com/recent
   - name: extracting ideone ids...
-    action: html
+    action: selector
     options:
       query: .source-view a
       attribute: href
