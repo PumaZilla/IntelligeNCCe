@@ -1,17 +1,13 @@
-
 <div align="center">
-  <img src=".github/readme/artwork/logo_with_title.png" alt="IntelligeNCCe" width="400">
-  <br/>
-</div>
-
-<p align="center">
+    <img src=".github/readme/logo_with_title.png" alt="IntelligeNCCe" title="IntelligeNCCe" width="400">
+    <br/>
     <a href="https://www.nccgroup.com/">
         <img src="https://img.shields.io/badge/Develop%20for-NCC%20Group-293277?style=for-the-badge&logo=stylelint&logoColor=fff" alt="NCC Group" />
     </a>
     <a href="LICENSE">
         <img alt="GitHub" src="https://img.shields.io/badge/LICENSE-AGPL--3.0-orange?style=for-the-badge&logo=unlicense&logoColor=fff" alt="License" />
-    <a href="https://www.nccgroup.com/">
-</p>
+    </a>
+</div>
 <br>
 
 ## 🗓️ What, How and Why?
@@ -25,5 +21,5 @@ This program was designed to track assets and identify security vulnerabilities 
 Clone or download the project:
 
 ```sh
-git clone --depth=1 https://github.com/CosasDePuma/IntelligeNCCe.git
+git clone --depth=1 https://github.com/PumaZilla/IntelligeNCCe.git
 ```
