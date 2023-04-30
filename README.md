@@ -9,7 +9,7 @@
         <img src="https://img.shields.io/badge/Develop%20for-NCC%20Group-293277?style=for-the-badge&logo=stylelint&logoColor=fff" alt="NCC Group" />
     </a>
     <a href="LICENSE">
-        <img alt="GitHub" src="https://img.shields.io/github/license/PumaZilla/IntelligeNCCe?style=for-the-badge&logo=unlicense&logoColor=fff" />
+        <img alt="GitHub" src="https://img.shields.io/badge/LICENSE-AGPL--3.0-orange?style=for-the-badge&logo=unlicense&logoColor=fff" />
     <a href="https://www.nccgroup.com/">
 </p>
 <br>
