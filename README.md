@@ -9,7 +9,7 @@
         <img src="https://img.shields.io/badge/Develop%20for-NCC%20Group-293277?style=for-the-badge&logo=stylelint&logoColor=fff" alt="NCC Group" />
     </a>
     <a href="LICENSE">
-        <img alt="GitHub" src="https://img.shields.io/badge/LICENSE-AGPL--3.0-orange?style=for-the-badge&logo=unlicense&logoColor=fff" />
+        <img alt="GitHub" src="https://img.shields.io/badge/LICENSE-AGPL--3.0-orange?style=for-the-badge&logo=unlicense&logoColor=fff" alt="License" />
     <a href="https://www.nccgroup.com/">
 </p>
 <br>
@@ -18,7 +18,7 @@
 
 `IntelligeNCCe` is a monitoring software developed during the **Next Generation Talent Programme** (at [NCC Group](https://www.nccgroup.com/)).
 
-This program is designed to track assets and identify security vulnerabilities and leaks. By analyzing data from potential security breaches, `IntelligeNCCe` can provide intelligence on potential security threats in order to anticipate them and protect the assets.
+This program was designed to track assets and identify security vulnerabilities and leaks. By analyzing data from potential security breaches, `IntelligeNCCe` can provide intelligence on potential security threats in order to anticipate them and protect the assets.
 
 ## 🐑 Clone me!
 
